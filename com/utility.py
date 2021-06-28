@@ -1,4 +1,7 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
 import os
 import tensorflow
 
@@ -70,7 +73,7 @@ def produceMagnitude(flag):
 
 
 def encode(train_X, train_y, test_X, test_y):
-    # forse da eliminare
+
     train_y = train_y - 1
     test_y = test_y - 1
     # one hot encode y
@@ -107,7 +110,7 @@ def load_y(y_path):
     return y_ - 1
 
 
-def loadDataHMM():
+def loadData():
     print('caricamento dei dati di training e test')
     X_train = produceMagnitude(0)
     X_test = produceMagnitude(1)
@@ -115,39 +118,9 @@ def loadDataHMM():
     y_train = load_y(y_train_path)
     y_test = load_y(y_test_path)
 
-    # print('X_train', X_train)
-    # print('y_train', y_train)
-    # print('X_test', X_test)
-    # print('y_test', y_test)
-
     print('fine caricamento')
     return X_train, y_train, X_test, y_test
 
-
-def loadDataCNN():
-    print('caricamento dei dati di training e test')
-
-    X_train = load_X(X_train_signals_paths)
-    X_test = load_X(X_test_signals_paths)
-
-    y_train = load_y(y_train_path)
-    y_test = load_y(y_test_path)
-
-    print('fine caricamento')
-    return X_train, y_train, X_test, y_test
-
-
-def loadDataBLSTM():
-    print('caricamento dei dati di training e test')
-
-    X_train = load_X(X_train_signals_paths)
-    X_test = load_X(X_test_signals_paths)
-
-    y_train = load_y(y_train_path)
-    y_test = load_y(y_test_path)
-
-    print('fine caricamento')
-    return X_train, y_train, X_test, y_test
 
 
 def dataProcessingHMM(X_train, y_train, X_test, y_test):
