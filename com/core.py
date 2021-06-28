@@ -1,27 +1,37 @@
 from abc import ABCMeta, abstractmethod
-from tensorflow.keras.utils import to_categorical
-from utility import *
-
-import numpy as np
+from com.utility import *
 
 
 class BaseModel(metaclass=ABCMeta):
 
     def __init__(self):
-        X_train, y_train, X_test, y_test = loadData()
-        self.processData(X_train, y_train, X_test, y_test)
+        self.checkpoint = None
+        self.y_train = None
+        self.y_test = None
+        self.y_val = None
+
+        self.X_train = None
+        self.X_test = None
+        self.X_val = None
+
+        self.history = None
+        self.processData()
 
     @abstractmethod
     def processData(self):
         """
-
-        :return:
+        tldr
         """
-        self.X_train, self.y_train, self.X_test, self.y_test, self.X_val, self.y_val
-
 
     @abstractmethod
     def fit(self):
         ''''
-        same thing
+        verrà implementato dai modelli
         '''
+
+    @abstractmethod
+    def plot(self):
+        """
+
+        :return:
+        """

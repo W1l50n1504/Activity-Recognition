@@ -15,26 +15,28 @@ for device in gpu_devices:
     tf.config.experimental.set_memory_growth(device, True)
 
 
-class CNN(BaseModel, ABC):
+class BLSTM(BaseModel, ABC):
     def __init__(self):
         super().__init__()
-        self.epochs = 10
         print('Creazione Modello...')
+        self.epochs = 10
+
         self.model = Sequential()
-        self.model.add(Conv2D(64, 1, activation='relu', input_shape=self.X_train[0].shape))
-        self.model.add(Dropout(0.1))
+        self.model.add(
+            Bidirectional(
+                LSTM(units=64, return_sequences=True, input_shape=[self.X_train.shape[1], self.X_train.shape[2]])))
 
-        self.model.add(Conv2D(128, 1, activation='relu', padding='valid'))
-        self.model.add(MaxPool2D(1, 1))
+        self.model.add(Dropout(rate=0.1))
 
-        self.model.add(Dropout(0.5))
-        self.model.add(Flatten())
+        self.model.add(Bidirectional(LSTM(units=128)))
 
-        self.model.add(Dense(512, activation='relu'))
+        self.model.add(Dense(units=256, activation='relu'))
 
-        self.model.add(Dense(6, activation='softmax'))
+        self.model.add(Dropout(rate=0.5))
 
-        self.model.compile(optimizer=Adam(learning_rate=0.001), loss='mse',
+        self.model.add(Dense(self.y_train.shape[1], activation='softmax'))
+
+        self.model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy',
                            metrics=['accuracy', tf.keras.metrics.AUC()])
 
         print('Fine creazione')
@@ -65,15 +67,16 @@ class CNN(BaseModel, ABC):
         print('fine elaborazione dati')
 
     def fit(self):
-        self.checkpoint = ModelCheckpoint(checkPointPathCNN + '/best_model.hdf5',
-                                          monitor='val_accuracy', verbose=1, save_best_only=True, mode='auto', period=1)
+        self.checkpoint = ModelCheckpoint(
+            checkPointPathBLSTM + '/best_model.hdf5', monitor='val_accuracy', verbose=1, save_best_only=True,
+            mode='auto',
+            period=1)
 
-        self.history = self.model.fit(self.X_train, self.y_train, batch_size=64, epochs=self.epochs,
-                                      validation_data=(self.X_val, self.y_val),
-                                      verbose=1, callbacks=[self.checkpoint])
+        self.history = self.model.fit(self.X_train, self.y_train, batch_size=16, epochs=10,
+                                      validation_data=(self.X_test, self.y_test), verbose=1,
+                                      callbacks=[self.checkpoint])
 
     def plot(self):
-        # plotting confusion matrix
         rounded_labels = np.argmax(self.y_test, axis=1)
         y_pred = self.model.predict_classes(self.X_test)
 
@@ -92,7 +95,7 @@ class CNN(BaseModel, ABC):
         sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
                     yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
                     xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))  # font size
-        plt.savefig(confusionMatrixCNN)
+        plt.savefig(confusionMatrixBLSTM)
         # Plot training & validation accuracy values
         plt.figure(figsize=(15, 8))
         epoch_range = range(1, self.epochs + 1)
@@ -102,7 +105,7 @@ class CNN(BaseModel, ABC):
         plt.ylabel('Validation Accuracy')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(trainingValAccCNN)
+        plt.savefig(trainingValAccBLSTM)
         # plt.show()
 
         # Plot training & validation auc values
@@ -114,7 +117,7 @@ class CNN(BaseModel, ABC):
         plt.ylabel('auc')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(trainingValAucCNN)
+        plt.savefig(TrainingValAucBLSTM)
         # plt.show()
 
         # Plot training & validation loss values
@@ -125,5 +128,5 @@ class CNN(BaseModel, ABC):
         plt.ylabel('Loss')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(modelLossCNN)
+        plt.savefig(ModelLossBLSTM)
         # plt.show()
