@@ -15,34 +15,39 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
 from mlxtend.plotting import plot_confusion_matrix
 
-absPath_ = os.getcwd()
+#absPath_ = os.getcwd()
+absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
 
-checkPointPathCNN = absPath_ + 'com/checkpoint/CNN'
-checkPointPathBLSTM = absPath_ + 'com/checkpoint/BLSTM'
+# UCI HAR dataset path
+featuresPath = absPath_ + '/dataset/UCI HAR Dataset/features.txt'
+xTrainPathUCI = absPath_ + '/dataset/UCI HAR Dataset/train/X_train.txt'
+yTrainPathUCI = absPath_ + '/dataset/UCI HAR Dataset/train/y_train.txt'
+xTestPathUCI = absPath_ + '/dataset/UCI HAR Dataset/test/X_test.txt'
+yTestPathUCI = absPath_ + '/dataset/UCI HAR Dataset/test/y_test.txt'
+xacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_x_test.txt'
+yacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_y_test.txt'
+zacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_z_test.txt'
+x = 'tBodyAcc-mean()-X'
+y = 'tBodyAcc-mean()-Y'
+z = 'tBodyAcc-mean()-Z'
 
-nameXtrain = ''
-nameYtrain = ''
-nameZtrain = ''
-
-nameXtest = ''
-nameYtest = ''
-nameZtest = ''
-
-y_train_path = ''
-y_test_path = ''
+# posizione di salvataggio checkpoint dei modelli
+checkPointPathCNN = absPath_ + '/checkpoint/CNN'
+checkPointPathBLSTM = absPath_ + '/checkpoint/BLSTM'
+checkPointPathHMM = absPath_ + '/checkpoint/HMM'
 
 # posizione salvataggio immagini dei grafici dei modelli
 # grafici BLSTM
-confusionMatrixBLSTM = 'com/graphs/cnn/confusionMatrixBLSTM.png'
-trainingValAccBLSTM = 'com/graphs/cnn/trainingValAccBLSTM.png'
-TrainingValAucBLSTM = 'com/graphs/cnn/trainingValAucBLSTM.png'
-ModelLossBLSTM = 'com/graphs/cnn/modelLossBLSTM.png'
+confusionMatrixBLSTM = absPath_ + '/graphs/cnn/confusionMatrixBLSTM.png'
+trainingValAccBLSTM = absPath_ + '/graphs/cnn/trainingValAccBLSTM.png'
+TrainingValAucBLSTM = absPath_ + '/graphs/cnn/trainingValAucBLSTM.png'
+ModelLossBLSTM = absPath_ + '/graphs/cnn/modelLossBLSTM.png'
 
 # grafici CNN
-confusionMatrixCNN = 'com/graphs/cnn/confusionMatrixCNN.png'
-trainingValAccCNN = 'com/graphs/cnn/trainingValAccCNN.png'
-trainingValAucCNN = 'com/graphs/cnn/trainingValAucCNN.png'
-modelLossCNN = 'com/graphs/cnn/modelLossCNN.png'
+confusionMatrixCNN = absPath_ + '/graphs/cnn/confusionMatrixCNN.png'
+trainingValAccCNN = absPath_ + '/graphs/cnn/trainingValAccCNN.png'
+trainingValAucCNN = absPath_ + '/graphs/cnn/trainingValAucCNN.png'
+modelLossCNN = absPath_ + 'graphs/cnn/modelLossCNN.png'
 
 # grafici HMM
 
@@ -79,6 +84,22 @@ def produceMagnitude(flag, path):
 def load_X(X_signals_paths):
     X_signals = []
 
+    for signal_type_path in X_signals_paths:
+        file = open(signal_type_path, 'r')
+        # Read dataset from disk, dealing with text files' syntax
+        X_signals.append(
+            [np.array(serie, dtype=np.float32) for serie in [
+                row.replace('  ', ' ').strip().split(' ') for row in file
+            ]]
+        )
+        file.close()
+
+    return np.transpose(np.array(X_signals), (1, 2, 0))
+
+
+def load_X1(X_signals_paths):
+    X_signals = []
+
     file = open(X_signals_paths, 'r')
     X_signals.append(
         [np.array(serie, dtype=np.float32) for serie in [
@@ -103,6 +124,8 @@ def load_y(y_path):
     return y_ - 1
 
 
+"""
+
 def loadData():
     print('caricamento dei dati di training e test')
     X_train = produceMagnitude(0)
@@ -112,109 +135,73 @@ def loadData():
     y_test = load_y(y_test_path)
 
     print('fine caricamento')
-    # return X_train, y_train, X_test, y_test
-
-    print('hello')
+    return X_train, y_train, X_test, y_test"""
 
 
-def dataProcessingHMM(X_train, y_train, X_test, y_test):
-    print('elaborazione dei dati...')
+def loadData():
+    # obiettivi, caricare i tre dataset,downsampling di ucihar da 50Hz a 20Hz, rimappare la label
+    # per unificarle e avere tutte le attivita' in sincrono
 
-    X = np.concatenate((X_train, X_test))
-    y = np.concatenate((y_train, y_test))
+    print('Inizio caricamento dataset...')
 
-    X = np.log(X)
+    # UCI HAR Dataset caricato correttamente con il nome di ogni feature
+    feature_name_df = pd.read_csv(featuresPath, sep='\s+', header=None, names=['column_index', 'column_name'])
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
+    feature_name = feature_name_df.iloc[:, 1].values.tolist()
+    feature_dup_df = feature_name_df.groupby('column_name').count()
+    feature_dup_df[feature_dup_df['column_index'] > 1].head()
+    X_trainUCI, X_testUCI, y_trainUCI, y_testUCI = get_human_dataset()
 
-    # enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-    # enc = enc.fit(y_train)
-    """
-    y_train = enc.transform(y_train)
-    y_test = enc.transform(y_test)
-    y_val = enc.transform(y_val)
-    X_train = X_train.reshape(6488, 128)
-    X_test = X_test.reshape(3090, 128)
-    X_val = X_val.reshape(721, 128)
-    """
-    X_train = X_train.reshape((X_train.shape[0] * X_train.shape[1]), X_train.shape[2])
-    X_test = X_test.reshape((X_test.shape[0] * X_test.shape[1]), X_test.shape[2])
-    X_val = X_val.reshape((X_val.shape[0] * X_val.shape[1]), X_val.shape[2])
+    print(X_trainUCI.shape)
 
+    # per il downsampling setta ogni riga a 50hz
+    # X_trainUCI.index = pd.to_datetime(X_trainUCI.index, unit='s')
+    # X_trainUCI.resample('20T')
+
+    X_train = np.array(np.sqrt((X_trainUCI[x] ** 2) + (X_trainUCI[y] ** 2) + (X_trainUCI[z] ** 2)))
     X_train = X_train.reshape(-1, 1)
+
+    X_test = np.array(np.sqrt((X_testUCI[x] ** 2) + (X_testUCI[y] ** 2) + (X_testUCI[z] ** 2)))
     X_test = X_test.reshape(-1, 1)
-    X_val = X_val.reshape(-1, 1)
 
-    y_train = y_train.reshape(-1, 1)
-    y_test = y_test.reshape(-1, 1)
-    y_val = y_val.reshape(-1, 1)
+    y_train = np.array(y_trainUCI)
+    y_test = np.array(y_testUCI)
 
-    print('fine elaborazione dati')
-    return X_train, y_train, X_test, y_test, X_val, y_val
+    # copia ed elaborazione dei dati contenuti nell'UCIHAR
 
-
-def dataProcessingBLSTM(X_train, y_train, X_test, y_test):
-    print('elaborazione dei dati...')
-
-    X = np.concatenate((X_train, X_test))
-
-    y = np.concatenate((y_train, y_test))
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
-
-    enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-    enc = enc.fit(y_train)
-
-    y_train = enc.transform(y_train)
-    y_test = enc.transform(y_test)
-    y_val = enc.transform(y_val)
-    print('fine elaborazione dati')
-
-    return X_train, y_train, X_test, y_test, X_val, y_val
+    return X_train, y_train, X_test, y_test
 
 
-def plotHMM(X_train, y_train, X_test, y_test, X_val, y_val):
-    # non va bene come criterio di controllo della precisione del modello,
-    # e' necessario trovare un metodo migliore per valutare la precisione del sistema per compararla con gli altri approcci
+def get_new_feature_name_df(old_feature_name_df):
+    feature_dup_df = pd.DataFrame(data=old_feature_name_df.groupby('column_name').cumcount(),
+                                  columns=['dup_cnt'])
+    feature_dup_df = feature_dup_df.reset_index()
+    new_feature_name_df = pd.merge(old_feature_name_df.reset_index(),
+                                   feature_dup_df,
+                                   how='outer')
+    new_feature_name_df['column_name'] = new_feature_name_df[['column_name', 'dup_cnt']].apply(
+        lambda x: x[0] + '_' + str(x[1]) if x[1] > 0 else x[0], axis=1)
+    new_feature_name_df = new_feature_name_df.drop(['index'], axis=1)
+    return new_feature_name_df
 
-    lr = loadModel()
-    print('Calcolo degli score del modello...')
-    train_scores = []
-    test_scores = []
-    val_scores = []
-    X_train = X_train.reshape(1, -1).tolist()
-    X_test = X_test.reshape(1, -1).tolist()
-    X_val = X_val.reshape(1, -1).tolist()
 
-    for i in range(0, len(y_train)):
-        train_score = lr.score(X_train)
-        train_scores.append(train_score)
+def get_human_dataset():
+    feature_name_df = pd.read_csv(featuresPath,
+                                  sep='\s+',
+                                  header=None,
+                                  names=['column_index', 'column_name'])
 
-    for i in range(0, len(y_test)):
-        test_score = lr.score(X_test)
-        test_scores.append(test_score)
+    new_feature_name_df = get_new_feature_name_df(feature_name_df)
 
-    for i in range(0, len(y_val)):
-        val_score = lr.score(X_val)
-        val_scores.append(val_score)
+    feature_name = new_feature_name_df.iloc[:, 1].values.tolist()
 
-    length_train = len(train_scores)
-    length_val = len(val_scores) + length_train
-    length_test = len(test_scores) + length_val
+    X_train = pd.read_csv(xTrainPathUCI, sep='\s+', names=feature_name)
+    X_test = pd.read_csv(xTestPathUCI, sep='\s+', names=feature_name)
 
-    plt.figure(figsize=(7, 5))
-    plt.scatter(np.arange(length_train), train_scores, c='b', label='trainset')
-    plt.scatter(np.arange(length_train, length_val), val_scores, c='r', label='testset - imitation')
-    plt.scatter(np.arange(length_val, length_test), test_scores, c='g', label='testset - original')
-    plt.title(f'User: 1 | HMM states: 6 | GMM components: 2')
-    plt.legend(loc='lower right')
+    y_train = pd.read_csv(yTrainPathUCI, sep='\s+', header=None, names=['action'])
+    y_test = pd.read_csv(yTestPathUCI, sep='\s+', header=None, names=['action'])
 
-    plt.savefig(hmmGraph)
-    plt.show()
-
+    return X_train, X_test, y_train, y_test
 
 if __name__ == '__main__':
-    print('hello')
+    print(absPath_)

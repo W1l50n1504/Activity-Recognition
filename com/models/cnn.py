@@ -58,10 +58,6 @@ class CNN(BaseModel, ABC):
 
         # print('dimensione reshape', self.X_val[..., np.newaxis].shape)
 
-        self.X_train = self.X_train.reshape(6488, 561, 1, 1)
-        self.X_test = self.X_test.reshape(3090, 561, 1, 1)
-        self.X_val = self.X_val.reshape(721, 561, 1, 1)
-
         print('fine elaborazione dati')
 
     def fit(self):
@@ -127,3 +123,10 @@ class CNN(BaseModel, ABC):
         plt.legend(['Train', 'Val'], loc='upper left')
         plt.savefig(modelLossCNN)
         # plt.show()
+
+
+if __name__ == '__main__':
+    cnn = CNN()
+
+    cnn.fit()
+    cnn.plot()
