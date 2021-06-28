@@ -1,7 +1,7 @@
 from com.core import *
 from com.utility import *
 
-from abc import ABC
+
 
 import tensorflow as tf
 
@@ -18,9 +18,12 @@ for device in gpu_devices:
 class CNN(BaseModel, ABC):
     def __init__(self):
         super().__init__()
+        self.processData()
         self.epochs = 10
-        print('Creazione Modello...')
         self.model = Sequential()
+
+    def modelCreation(self):
+        print('Creazione Modello...')
         self.model.add(Conv2D(64, 1, activation='relu', input_shape=self.X_train[0].shape))
         self.model.add(Dropout(0.1))
 
@@ -56,7 +59,13 @@ class CNN(BaseModel, ABC):
         self.y_test = enc.transform(self.y_test)
         self.y_val = enc.transform(self.y_val)
 
-        # print('dimensione reshape', self.X_val[..., np.newaxis].shape)
+        # print('dimensione reshape', self.y_train[..., np.newaxis].shape)
+        # print('dimensione reshape', self.y_test[..., np.newaxis].shape)
+        # print('dimensione reshape', self.y_val[..., np.newaxis].shape)
+
+        self.X_train = self.X_train.reshape(6488, 1, 1, 1)
+        self.X_test = self.X_test.reshape(3090, 1, 1, 1)
+        self.X_val = self.X_val.reshape(721, 1, 1, 1)
 
         print('fine elaborazione dati')
 
@@ -128,5 +137,6 @@ class CNN(BaseModel, ABC):
 if __name__ == '__main__':
     cnn = CNN()
 
+    cnn.modelCreation()
     cnn.fit()
-    cnn.plot()
+    # cnn.plot()

@@ -1,86 +1,123 @@
+from com.core import *
 from com.utility import *
+from hmmlearn.hmm import GaussianHMM, GMMHMM, MultinomialHMM
 
 np.random.seed(42)
 
 absPath_ = os.getcwd()
 
 
-def dataProcessingHMM(X_train, y_train, X_test, y_test):
-    print('elaborazione dei dati...')
+class HMM(BaseModel, ABC):
 
-    X = np.concatenate((X_train, X_test))
-    y = np.concatenate((y_train, y_test))
+    def __init__(self):
+        super().__init__()
+        self.X_train, self.y_train, self.X_test, self.y_test = loadDataHMM()
+        self.processData()
 
-    X = np.log(X)
+    def createModel(self):
+        self.n_mix = 16
+        self.n_components = 6
+        print('Creazioni matrici di prob...')
+        startprob = np.zeros(self.n_components)
+        startprob[0] = 1
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
+        transmat = np.zeros((self.n_components, self.n_components))
+        transmat[0, 0] = 1
+        transmat[-1, -1] = 1
 
-    # enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-    # enc = enc.fit(y_train)
-    """
-    y_train = enc.transform(y_train)
-    y_test = enc.transform(y_test)
-    y_val = enc.transform(y_val)
-    X_train = X_train.reshape(6488, 128)
-    X_test = X_test.reshape(3090, 128)
-    X_val = X_val.reshape(721, 128)
-    """
-    X_train = X_train.reshape((X_train.shape[0] * X_train.shape[1]), X_train.shape[2])
-    X_test = X_test.reshape((X_test.shape[0] * X_test.shape[1]), X_test.shape[2])
-    X_val = X_val.reshape((X_val.shape[0] * X_val.shape[1]), X_val.shape[2])
+        for i in range(transmat.shape[0] - 1):
+            if i != transmat.shape[0]:
+                for j in range(i, i + 2):
+                    transmat[i, j] = 0.5
 
-    X_train = X_train.reshape(-1, 1)
-    X_test = X_test.reshape(-1, 1)
-    X_val = X_val.reshape(-1, 1)
+        print('Creazione modello...')
+        self.model = MultinomialHMM(n_components=self.n_components)
 
-    y_train = y_train.reshape(-1, 1)
-    y_test = y_test.reshape(-1, 1)
-    y_val = y_val.reshape(-1, 1)
+        self.model.startprob_ = np.array(startprob)
+        self.model.transmat_ = np.array(transmat)
+        print('fine creazione modello')
 
-    print('fine elaborazione dati')
-    return X_train, y_train, X_test, y_test, X_val, y_val
+    def fit(self):
+        print('Inizio fitting del modello...')
+        print(self.X_train.shape)
+        print(self.y_train.shape)
+        self.model.fit(self.X_train, self.y_train)
+        print('fine fitting')
+        print('Salvataggio del modello...')
+        self.saveModel()
+
+    def processData(self):
+        print('elaborazione dei dati...')
+
+        X = np.concatenate((self.X_train, self.X_test))
+        y = np.concatenate((self.y_train, self.y_test))
+
+        X = np.log(X)
+
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1,
+                                                                              random_state=42)
+
+        # enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
+        # enc = enc.fit(y_train)
+        """
+        y_train = enc.transform(y_train)
+        y_test = enc.transform(y_test)
+        y_val = enc.transform(y_val)
+        X_train = X_train.reshape(6488, 128)
+        X_test = X_test.reshape(3090, 128)
+        X_val = X_val.reshape(721, 128)
+        """
+
+        self.X_train = self.X_train.reshape(-1, 1)
+        self.X_test = self.X_test.reshape(-1, 1)
+        self.X_val = self.X_val.reshape(-1, 1)
+
+        self.y_train = self.y_train.reshape(-1, 1)
+        self.y_test = self.y_test.reshape(-1, 1)
+        self.y_val = self.y_val.reshape(-1, 1)
+
+        print('fine elaborazione dati')
+
+    def loadModel():
+        return None
+
+    def plot(self):
+        # non va bene come criterio di controllo della precisione del modello,
+        # e' necessario trovare un metodo migliore per valutare la precisione del sistema per compararla con gli altri approcci
+        # model = loadModel()
+        rounded_labels = np.argmax(self.y_test, axis=1)
+        y_pred = self.model.predict(self.X_test)
+
+        print('rounded', rounded_labels.shape)
+        print('y_pred', y_pred.shape)
+        print('y_test', self.y_test.shape)
+
+        print('y_test', self.y_test)
+        print('rounded', rounded_labels)
+        print('y_pred', y_pred)
+
+        mat = confusion_matrix(rounded_labels, y_pred)
+        plot_confusion_matrix(conf_mat=mat, show_normed=True, figsize=(10, 10))
+
+        plt.figure(figsize=(10, 10))
+        array = confusion_matrix(rounded_labels, y_pred)
+        df_cm = pd.DataFrame(array, range(6), range(6))
+        df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+        df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+        # sn.set(font_scale=1)#for label size
+        sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
+                    yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                    xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))  # font size
+        # plt.savefig()
+        plt.show()
+
+    def saveModel(self):
+        return None
 
 
-def loadModel():
-    return None
-
-
-def plotHMM(X_train, y_train, X_test, y_test, X_val, y_val):
-    # non va bene come criterio di controllo della precisione del modello,
-    # e' necessario trovare un metodo migliore per valutare la precisione del sistema per compararla con gli altri approcci
-
-    lr = loadModel()
-    print('Calcolo degli score del modello...')
-    train_scores = []
-    test_scores = []
-    val_scores = []
-    X_train = X_train.reshape(1, -1).tolist()
-    X_test = X_test.reshape(1, -1).tolist()
-    X_val = X_val.reshape(1, -1).tolist()
-
-    for i in range(0, len(y_train)):
-        train_score = lr.score(X_train)
-        train_scores.append(train_score)
-
-    for i in range(0, len(y_test)):
-        test_score = lr.score(X_test)
-        test_scores.append(test_score)
-
-    for i in range(0, len(y_val)):
-        val_score = lr.score(X_val)
-        val_scores.append(val_score)
-
-    length_train = len(train_scores)
-    length_val = len(val_scores) + length_train
-    length_test = len(test_scores) + length_val
-
-    plt.figure(figsize=(7, 5))
-    plt.scatter(np.arange(length_train), train_scores, c='b', label='trainset')
-    plt.scatter(np.arange(length_train, length_val), val_scores, c='r', label='testset - imitation')
-    plt.scatter(np.arange(length_val, length_test), test_scores, c='g', label='testset - original')
-    plt.title(f'User: 1 | HMM states: 6 | GMM components: 2')
-    plt.legend(loc='lower right')
-
-    plt.savefig(hmmGraph)
-    plt.show()
+if __name__ == '__main__':
+    hmm = HMM()
+    hmm.createModel()
+    hmm.fit()
+    hmm.plot()

@@ -13,9 +13,7 @@ class BaseModel(metaclass=ABCMeta):
         self.X_train = None
         self.X_test = None
         self.X_val = None
-
         self.history = None
-        self.processData()
 
     @abstractmethod
     def processData(self):

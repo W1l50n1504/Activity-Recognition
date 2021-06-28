@@ -1,8 +1,6 @@
 from com.core import *
 from com.utility import *
 
-from abc import ABC
-
 import tensorflow as tf
 
 RANDOM_SEED = 42

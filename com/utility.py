@@ -5,6 +5,7 @@ import pandas as pd
 import seaborn as sns
 import tensorflow
 
+from abc import ABC
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
@@ -15,7 +16,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
 from mlxtend.plotting import plot_confusion_matrix
 
-#absPath_ = os.getcwd()
+# absPath_ = os.getcwd()
 absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
 
 # UCI HAR dataset path
@@ -57,10 +58,12 @@ labelDict = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
 
 
 def norm(data):
+    # da eliminare
     return (data - data.mean()) / data.std() + np.finfo(np.float32).eps
 
 
 def produceMagnitude(flag, path):
+    # da eliminare
     magnitude = []
     if flag:
 
@@ -138,7 +141,7 @@ def loadData():
     return X_train, y_train, X_test, y_test"""
 
 
-def loadData():
+def loadDataHMM():
     # obiettivi, caricare i tre dataset,downsampling di ucihar da 50Hz a 20Hz, rimappare la label
     # per unificarle e avere tutte le attivita' in sincrono
 
@@ -152,20 +155,18 @@ def loadData():
     feature_dup_df[feature_dup_df['column_index'] > 1].head()
     X_trainUCI, X_testUCI, y_trainUCI, y_testUCI = get_human_dataset()
 
-    print(X_trainUCI.shape)
-
     # per il downsampling setta ogni riga a 50hz
     # X_trainUCI.index = pd.to_datetime(X_trainUCI.index, unit='s')
     # X_trainUCI.resample('20T')
 
     X_train = np.array(np.sqrt((X_trainUCI[x] ** 2) + (X_trainUCI[y] ** 2) + (X_trainUCI[z] ** 2)))
-    X_train = X_train.reshape(-1, 1)
+    # X_train = X_train.reshape(-1, 1)
 
     X_test = np.array(np.sqrt((X_testUCI[x] ** 2) + (X_testUCI[y] ** 2) + (X_testUCI[z] ** 2)))
-    X_test = X_test.reshape(-1, 1)
+    # X_test = X_test.reshape(-1, 1)
 
-    y_train = np.array(y_trainUCI)
-    y_test = np.array(y_testUCI)
+    y_train = y_trainUCI
+    y_test = y_testUCI
 
     # copia ed elaborazione dei dati contenuti nell'UCIHAR
 
@@ -202,6 +203,7 @@ def get_human_dataset():
     y_test = pd.read_csv(yTestPathUCI, sep='\s+', header=None, names=['action'])
 
     return X_train, X_test, y_train, y_test
+
 
 if __name__ == '__main__':
     print(absPath_)
