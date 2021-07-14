@@ -33,6 +33,10 @@ z = 'tBodyAcc-mean()-Z'
 
 wisdmPath = absPath_ + '/dataset/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt'
 
+# UMAFALL dataset path, da sistemare perche' bisogna prendere solo alcuni file e non tutti
+
+X_trainUMAFall = absPath_ + '/dataset/UMAFall_Dataset'
+
 # posizione di salvataggio checkpoint dei modelli
 checkPointPathCNN = absPath_ + '/checkpoint/CNN'
 checkPointPathBLSTM = absPath_ + '/checkpoint/BLSTM'
@@ -52,8 +56,6 @@ trainingValAccBLSTM = absPath_ + '/graphs/cnn/trainingValAccBLSTM.png'
 TrainingValAucBLSTM = absPath_ + '/graphs/cnn/trainingValAucBLSTM.png'
 ModelLossBLSTM = absPath_ + '/graphs/cnn/modelLossBLSTM.png'
 
-# grafici HMM
-
 # dizionari riguardanti le attività registrate dai dataset
 labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
                 'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
@@ -64,28 +66,6 @@ labelDictWISDM = {'Walking': 0, 'Upstairs': 1, 'Downstairs': 2, 'Sitting': 3, 'S
 def norm(data):
     # da eliminare
     return (data - data.mean()) / data.std() + np.finfo(np.float32).eps
-
-
-def produceMagnitude(flag, path):
-    # da eliminare
-    magnitude = []
-    if flag:
-
-        x = norm(load_X(path + nameXtrain))
-        y = norm(load_X(path + nameYtrain))
-        z = norm(load_X(path + nameZtrain))
-
-    else:
-        x = norm(load_X(path + nameXtest))
-        y = norm(load_X(path + nameYtest))
-        z = norm(load_X(path + nameZtest))
-
-    for i in range(0, len(x)):
-        magnitude.append(np.sqrt(x[i] ** 2 + y[i] ** 2 + z[i] ** 2))
-
-    # print('\n', magnitude)
-
-    return magnitude
 
 
 def load_X(X_signals_paths):
@@ -161,11 +141,17 @@ def loadWISDM():
     columns = ['user', 'activity', 'timestamp', 'x-acceleration', 'y-accel', 'z-accel']
     df = pd.read_csv(wisdmPath, header=None, names=columns)
 
-    # print(df.head())
+    # estrazione delle etichette delle attivita' presenti nel dataset e conversione utilizzando il dizionario
+    y_labels = df['activity'].copy()
+    y_labelList = y_label.tolist()
+    y_labelConverted = []
 
-    y_labels = df['activity']
+    for i in range(0, len(y_labelList)):
+        y_labelConverted.append(labelDictWISDM[y_labelList[i]])
 
-    print(y_labels)
+    # trovare il modo di estrarre le misurazioni dei tre assi e copiarli in un nuovo dataset, dopodiche' calcolare la magnitudine e aggiungere una nuova feature al dataset
+
+    return y_labelConverted
 
 
 def loadData():
@@ -178,7 +164,7 @@ def loadData():
     X_trainUCIArray, X_testUCIArray, y_trainUCIArray, y_testUCIArray = loadUCIHAR()
 
     # carico UMAFall
-    X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
+    # X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
 
     # carico WISDM
 
@@ -254,8 +240,9 @@ def get_human_dataset():
 
 
 if __name__ == '__main__':
-    #    X_train, y_train, X_test, y_test = loadData()
+    # X_train, y_train, X_test, y_test = loadData()
 
     # X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
 
-    loadWISDM()
+    # y_label = loadWISDM()
+    print()
