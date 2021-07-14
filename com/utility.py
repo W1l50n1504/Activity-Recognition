@@ -1,36 +1,37 @@
 import matplotlib.pyplot as plt
-import numpy as np
-import os
-import pandas as pd
-import seaborn as sns
-import tensorflow
 
-from abc import ABC
-from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder
-from tensorflow.keras import Sequential
-from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout, Bidirectional, LSTM
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.utils import to_categorical
-from mlxtend.plotting import plot_confusion_matrix
+import numpy as np
+
+import pandas as pd
+
+import seaborn as sns
+
+from sklearn.utils import resample
 
 # absPath_ = os.getcwd()
 absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
 
 # UCI HAR dataset path
 featuresPath = absPath_ + '/dataset/UCI HAR Dataset/features.txt'
+
 xTrainPathUCI = absPath_ + '/dataset/UCI HAR Dataset/train/X_train.txt'
-yTrainPathUCI = absPath_ + '/dataset/UCI HAR Dataset/train/y_train.txt'
 xTestPathUCI = absPath_ + '/dataset/UCI HAR Dataset/test/X_test.txt'
+
+yTrainPathUCI = absPath_ + '/dataset/UCI HAR Dataset/train/y_train.txt'
 yTestPathUCI = absPath_ + '/dataset/UCI HAR Dataset/test/y_test.txt'
+
 xacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_x_test.txt'
 yacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_y_test.txt'
 zacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_z_test.txt'
+
+# etichette dell'UCIHAR utili
 x = 'tBodyAcc-mean()-X'
 y = 'tBodyAcc-mean()-Y'
 z = 'tBodyAcc-mean()-Z'
+
+# WISDM dataset path
+
+wisdmPath = absPath_ + '/dataset/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt'
 
 # posizione di salvataggio checkpoint dei modelli
 checkPointPathCNN = absPath_ + '/checkpoint/CNN'
@@ -38,23 +39,26 @@ checkPointPathBLSTM = absPath_ + '/checkpoint/BLSTM'
 checkPointPathHMM = absPath_ + '/checkpoint/HMM'
 
 # posizione salvataggio immagini dei grafici dei modelli
-# grafici BLSTM
-confusionMatrixBLSTM = absPath_ + '/graphs/cnn/confusionMatrixBLSTM.png'
-trainingValAccBLSTM = absPath_ + '/graphs/cnn/trainingValAccBLSTM.png'
-TrainingValAucBLSTM = absPath_ + '/graphs/cnn/trainingValAucBLSTM.png'
-ModelLossBLSTM = absPath_ + '/graphs/cnn/modelLossBLSTM.png'
 
 # grafici CNN
 confusionMatrixCNN = absPath_ + '/graphs/cnn/confusionMatrixCNN.png'
 trainingValAccCNN = absPath_ + '/graphs/cnn/trainingValAccCNN.png'
 trainingValAucCNN = absPath_ + '/graphs/cnn/trainingValAucCNN.png'
-modelLossCNN = absPath_ + 'graphs/cnn/modelLossCNN.png'
+modelLossCNN = absPath_ + '/graphs/cnn/modelLossCNN.png'
+
+# grafici BLSTM
+confusionMatrixBLSTM = absPath_ + '/graphs/cnn/heatMapBLSTM.png'
+trainingValAccBLSTM = absPath_ + '/graphs/cnn/trainingValAccBLSTM.png'
+TrainingValAucBLSTM = absPath_ + '/graphs/cnn/trainingValAucBLSTM.png'
+ModelLossBLSTM = absPath_ + '/graphs/cnn/modelLossBLSTM.png'
 
 # grafici HMM
 
+# dizionari riguardanti le attività registrate dai dataset
+labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
+                'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
 
-labelDict = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
-             'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
+labelDictWISDM = {'Walking': 0, 'Upstairs': 1, 'Downstairs': 2, 'Sitting': 3, 'Standing': 4, 'Jogging': 6}
 
 
 def norm(data):
@@ -87,22 +91,6 @@ def produceMagnitude(flag, path):
 def load_X(X_signals_paths):
     X_signals = []
 
-    for signal_type_path in X_signals_paths:
-        file = open(signal_type_path, 'r')
-        # Read dataset from disk, dealing with text files' syntax
-        X_signals.append(
-            [np.array(serie, dtype=np.float32) for serie in [
-                row.replace('  ', ' ').strip().split(' ') for row in file
-            ]]
-        )
-        file.close()
-
-    return np.transpose(np.array(X_signals), (1, 2, 0))
-
-
-def load_X1(X_signals_paths):
-    X_signals = []
-
     file = open(X_signals_paths, 'r')
     X_signals.append(
         [np.array(serie, dtype=np.float32) for serie in [
@@ -127,50 +115,110 @@ def load_y(y_path):
     return y_ - 1
 
 
-"""
+def reduceSample(X_train, y_train, X_test, y_test):
+    # riduce la frequenza dei campioni da 50 Hz a 20Hz
+    XTrainReduced = resample(X_train, replace=True, n_samples=int((len(X_train) * 20) / 50))
+    yTrainReduced = resample(y_train, replace=True, n_samples=int((len(y_train) * 20) / 50))
+    XTestReduced = resample(X_test, replace=True, n_samples=int((len(X_test) * 20) / 50))
+    yTestReduced = resample(y_test, replace=True, n_samples=int((len(y_test) * 20) / 50))
+
+    return XTrainReduced, yTrainReduced, XTestReduced, yTestReduced
+
+
+def loadUCIHAR():
+    # copia ed elaborazione dei dati contenuti nell'UCIHAR
+    # UCI HAR Dataset caricato correttamente con il nome di ogni feature
+
+    X_trainUCI, X_testUCI, y_trainUCI, y_testUCI = get_human_dataset()
+
+    # creo la magnitudine utilizzando le tre colonne di dati
+    X_trainUCIArray = np.array(np.sqrt((X_trainUCI[x] ** 2) + (X_trainUCI[y] ** 2) + (X_trainUCI[z] ** 2)))
+    # X_train = X_train.reshape(-1, 1)
+
+    X_testUCIArray = np.array(np.sqrt((X_testUCI[x] ** 2) + (X_testUCI[y] ** 2) + (X_testUCI[z] ** 2)))
+    # X_test = X_test.reshape(-1, 1)
+
+    y_trainUCIArray = np.array(y_trainUCI)
+    y_testUCIArray = np.array(y_testUCI)
+
+    X_trainUCIArray, X_testUCIArray, y_trainUCIArray, y_testUCIArray = reduceSample(X_trainUCIArray, X_testUCIArray,
+                                                                                    y_trainUCIArray,
+                                                                                    y_testUCIArray)
+
+    return X_trainUCIArray, X_testUCIArray, y_trainUCIArray, y_testUCIArray
+
+
+def loadUMAFall():
+    X_trainUMAFallArray = np.array(X_trainUMAFall)
+    y_trainUMAFallArray = np.array(y_trainUMAFall)
+    X_testUMAFallArray = np.array(X_testUMAFall)
+    y_testUMAFallArray = np.array(y_testUMAFall)
+
+    return X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray
+
+
+def loadWISDM():
+    columns = ['user', 'activity', 'timestamp', 'x-acceleration', 'y-accel', 'z-accel']
+    df = pd.read_csv(wisdmPath, header=None, names=columns)
+
+    # print(df.head())
+
+    y_labels = df['activity']
+
+    print(y_labels)
+
 
 def loadData():
-    print('caricamento dei dati di training e test')
-    X_train = produceMagnitude(0)
-    X_test = produceMagnitude(1)
-
-    y_train = load_y(y_train_path)
-    y_test = load_y(y_test_path)
-
-    print('fine caricamento')
-    return X_train, y_train, X_test, y_test"""
-
-
-def loadDataHMM():
     # obiettivi, caricare i tre dataset,downsampling di ucihar da 50Hz a 20Hz, rimappare la label
     # per unificarle e avere tutte le attivita' in sincrono
 
     print('Inizio caricamento dataset...')
 
-    # UCI HAR Dataset caricato correttamente con il nome di ogni feature
-    feature_name_df = pd.read_csv(featuresPath, sep='\s+', header=None, names=['column_index', 'column_name'])
+    # carico UCIHAR
+    X_trainUCIArray, X_testUCIArray, y_trainUCIArray, y_testUCIArray = loadUCIHAR()
 
-    feature_name = feature_name_df.iloc[:, 1].values.tolist()
-    feature_dup_df = feature_name_df.groupby('column_name').count()
-    feature_dup_df[feature_dup_df['column_index'] > 1].head()
-    X_trainUCI, X_testUCI, y_trainUCI, y_testUCI = get_human_dataset()
+    # carico UMAFall
+    X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
 
-    # per il downsampling setta ogni riga a 50hz
-    # X_trainUCI.index = pd.to_datetime(X_trainUCI.index, unit='s')
-    # X_trainUCI.resample('20T')
+    # carico WISDM
 
-    X_train = np.array(np.sqrt((X_trainUCI[x] ** 2) + (X_trainUCI[y] ** 2) + (X_trainUCI[z] ** 2)))
-    # X_train = X_train.reshape(-1, 1)
+    X_trainWISDMArray, y_trainWISDMArray, X_testWISDMArray, y_testWISDMArray = loadWISDM()
 
-    X_test = np.array(np.sqrt((X_testUCI[x] ** 2) + (X_testUCI[y] ** 2) + (X_testUCI[z] ** 2)))
-    # X_test = X_test.reshape(-1, 1)
+    # unione dei tre dataset
 
-    y_train = y_trainUCI
-    y_test = y_testUCI
+    flag = 0
 
-    # copia ed elaborazione dei dati contenuti nell'UCIHAR
+    if (flag == 0):
+        X_train = np.concatenate((X_trainUCIArray, X_trainWISDMArray))
+        y_train = np.concatenate((y_trainUCIArray, y_trainWISDMArray))
 
-    return X_train, y_train, X_test, y_test
+        X_test = np.concatenate((X_testUCIArray, X_testWISDMArray))
+        y_test = np.concatenate((y_testUCIArray, y_testWISDMArray))
+
+        X_val = X_trainUMAFallArray
+        y_val = y_trainUMAFallArray
+
+    elif (flag == 1):
+        X_train = np.concatenate((X_trainWISDMArray, X_trainUMAFallArray))
+        y_train = np.concatenate((y_trainWISDMArray, y_trainUMAFallArray))
+
+        X_test = np.concatenate((X_testWISDMArray, X_testUMAFallArray))
+        y_test = np.concatenate((y_testWISDMArray, y_testUMAFallArray))
+
+        X_val = X_trainUCIArray
+        y_val = y_trainUCIArray
+
+    elif (flag == 2):
+        X_train = np.concatenate((X_trainUCIArray, X_trainUMAFallArray))
+        y_train = np.concatenate((y_trainUCIArray, y_trainUMAFallArray))
+
+        X_test = np.concatenate((X_testUCIArray, X_testUMAFallArray))
+        y_test = np.concatenate((y_testUCIArray, y_testUMAFallArray))
+
+        X_val = X_trainWISDMArray
+        y_val = y_trainWISDMArray
+
+    return X_train, y_train, X_test, y_test, X_val, y_val
 
 
 def get_new_feature_name_df(old_feature_name_df):
@@ -206,4 +254,8 @@ def get_human_dataset():
 
 
 if __name__ == '__main__':
-    print(absPath_)
+    #    X_train, y_train, X_test, y_test = loadData()
+
+    # X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
+
+    loadWISDM()

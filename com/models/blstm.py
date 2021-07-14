@@ -16,8 +16,40 @@ for device in gpu_devices:
 class BLSTM(BaseModel, ABC):
     def __init__(self):
         super().__init__()
-        print('Creazione Modello...')
         self.epochs = 10
+
+    def loadData(self):
+        print('caricamento dei dati di training e test')
+
+        self.X_train = load_X(xTrainPathUCI)
+        self.X_test = load_X(xTestPathUCI)
+
+        self.y_train = load_y(yTrainPathUCI)
+        self.y_test = load_y(yTestPathUCI)
+
+        print('fine caricamento')
+
+    def dataProcessing(self):
+        print('elaborazione dei dati...')
+
+        X = np.concatenate((self.X_train, self.X_test))
+
+        y = np.concatenate((self.y_train, self.y_test))
+
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+        self.X_train,self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1, random_state=42)
+
+        enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
+        enc = enc.fit(self.y_train)
+
+        self.y_train = enc.transform(self.y_train)
+        self.y_test = enc.transform(self.y_test)
+        self.y_val = enc.transform(self.y_val)
+        print('fine elaborazione dati')
+
+    def modelCreation(self):
+        print('Creazione Modello...')
 
         self.model = Sequential()
         self.model.add(
@@ -38,31 +70,6 @@ class BLSTM(BaseModel, ABC):
                            metrics=['accuracy', tf.keras.metrics.AUC()])
 
         print('Fine creazione')
-
-    def processData(self):
-        print('Elaborazione dei dati...')
-        self.X_train, self.y_train, self.X_test, self.y_test = loadData()
-        x = np.concatenate((self.X_train, self.X_test))
-        y = np.concatenate((self.y_train, self.y_test))
-
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(x, y, test_size=0.3, random_state=42)
-        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1,
-                                                                              random_state=42)
-
-        enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-        enc = enc.fit(self.y_train)
-
-        self.y_train = enc.transform(self.y_train)
-        self.y_test = enc.transform(self.y_test)
-        self.y_val = enc.transform(self.y_val)
-
-        # print('dimensione reshape', self.X_val[..., np.newaxis].shape)
-
-        self.X_train = self.X_train.reshape(6488, 561, 1, 1)
-        self.X_test = self.X_test.reshape(3090, 561, 1, 1)
-        self.X_val = self.X_val.reshape(721, 561, 1, 1)
-
-        print('fine elaborazione dati')
 
     def fit(self):
         self.checkpoint = ModelCheckpoint(
@@ -128,3 +135,8 @@ class BLSTM(BaseModel, ABC):
         plt.legend(['Train', 'Val'], loc='upper left')
         plt.savefig(ModelLossBLSTM)
         # plt.show()
+
+
+if __name__ == '__main__':
+    blstm = BLSTM()
+    blstm.main()

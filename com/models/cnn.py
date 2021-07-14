@@ -1,8 +1,6 @@
 from com.core import *
 from com.utility import *
 
-
-
 import tensorflow as tf
 
 RANDOM_SEED = 42
@@ -18,12 +16,29 @@ for device in gpu_devices:
 class CNN(BaseModel, ABC):
     def __init__(self):
         super().__init__()
-        self.processData()
         self.epochs = 10
-        self.model = Sequential()
+
+    def dataProcessing(self):
+        print('elaborazione dei dati...')
+
+        enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
+        enc = enc.fit(self.y_train)
+
+        self.y_train = enc.transform(self.y_train)
+        self.y_test = enc.transform(self.y_test)
+        self.y_val = enc.transform(self.y_val)
+
+        # print('dimensione reshape', X_val[..., np.newaxis].shape)
+
+        self.X_train = self.X_train.reshape(6488, 561, 1, 1)
+        self.X_test = self.X_test.reshape(3090, 561, 1, 1)
+        self.X_val = self.X_val.reshape(721, 561, 1, 1)
+
+        print('fine elaborazione dati')
 
     def modelCreation(self):
         print('Creazione Modello...')
+        self.model = Sequential()
         self.model.add(Conv2D(64, 1, activation='relu', input_shape=self.X_train[0].shape))
         self.model.add(Dropout(0.1))
 
@@ -42,33 +57,6 @@ class CNN(BaseModel, ABC):
 
         print('Fine creazione')
 
-    def processData(self):
-        print('Elaborazione dei dati...')
-        self.X_train, self.y_train, self.X_test, self.y_test = loadData()
-        x = np.concatenate((self.X_train, self.X_test))
-        y = np.concatenate((self.y_train, self.y_test))
-
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(x, y, test_size=0.3, random_state=42)
-        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1,
-                                                                              random_state=42)
-
-        enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-        enc = enc.fit(self.y_train)
-
-        self.y_train = enc.transform(self.y_train)
-        self.y_test = enc.transform(self.y_test)
-        self.y_val = enc.transform(self.y_val)
-
-        # print('dimensione reshape', self.y_train[..., np.newaxis].shape)
-        # print('dimensione reshape', self.y_test[..., np.newaxis].shape)
-        # print('dimensione reshape', self.y_val[..., np.newaxis].shape)
-
-        self.X_train = self.X_train.reshape(6488, 1, 1, 1)
-        self.X_test = self.X_test.reshape(3090, 1, 1, 1)
-        self.X_val = self.X_val.reshape(721, 1, 1, 1)
-
-        print('fine elaborazione dati')
-
     def fit(self):
         self.checkpoint = ModelCheckpoint(checkPointPathCNN + '/best_model.hdf5',
                                           monitor='val_accuracy', verbose=1, save_best_only=True, mode='auto', period=1)
@@ -82,9 +70,6 @@ class CNN(BaseModel, ABC):
         rounded_labels = np.argmax(self.y_test, axis=1)
         y_pred = self.model.predict_classes(self.X_test)
 
-        print('round', rounded_labels.shape)
-        print('y', y_pred.shape)
-
         mat = confusion_matrix(rounded_labels, y_pred)
         plot_confusion_matrix(conf_mat=mat, show_normed=True, figsize=(10, 10))
 
@@ -93,11 +78,12 @@ class CNN(BaseModel, ABC):
         df_cm = pd.DataFrame(array, range(6), range(6))
         df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
         df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-        # sn.set(font_scale=1)#for label size
         sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
                     yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
                     xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))  # font size
-        plt.savefig(confusionMatrixCNN)
+
+        plt.show()
+
         # Plot training & validation accuracy values
         plt.figure(figsize=(15, 8))
         epoch_range = range(1, self.epochs + 1)
@@ -136,7 +122,4 @@ class CNN(BaseModel, ABC):
 
 if __name__ == '__main__':
     cnn = CNN()
-
-    cnn.modelCreation()
-    cnn.fit()
-    # cnn.plot()
+    cnn.main()
