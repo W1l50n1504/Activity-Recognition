@@ -25,13 +25,19 @@ yacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_y_tes
 zacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_z_test.txt'
 
 # etichette dell'UCIHAR utili
-x = 'tBodyAcc-mean()-X'
-y = 'tBodyAcc-mean()-Y'
-z = 'tBodyAcc-mean()-Z'
+xUCI = 'tBodyAcc-mean()-X'
+yUCI = 'tBodyAcc-mean()-Y'
+zUCI = 'tBodyAcc-mean()-Z'
+magUCI = 'magnitude'
 
 # WISDM dataset path
 
 wisdmPath = absPath_ + '/dataset/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt'
+
+xWISDM = 'x-accel'
+yWISDM = 'y-accel'
+zWISDM = 'z-accel'
+magWISDM = 'magnitude'
 
 # UMAFALL dataset path, da sistemare perche' bisogna prendere solo alcuni file e non tutti
 
@@ -111,11 +117,13 @@ def loadUCIHAR():
 
     X_trainUCI, X_testUCI, y_trainUCI, y_testUCI = get_human_dataset()
 
+    # TODO sistema creando un nuovo dataset contenente le misurazioni lungo i tre assi e la magnitudine come hai fatto in WISDM
+
     # creo la magnitudine utilizzando le tre colonne di dati
-    X_trainUCIArray = np.array(np.sqrt((X_trainUCI[x] ** 2) + (X_trainUCI[y] ** 2) + (X_trainUCI[z] ** 2)))
+    X_trainUCIArray = np.array(np.sqrt((X_trainUCI[xUCI] ** 2) + (X_trainUCI[yUCI] ** 2) + (X_trainUCI[zUCI] ** 2)))
     # X_train = X_train.reshape(-1, 1)
 
-    X_testUCIArray = np.array(np.sqrt((X_testUCI[x] ** 2) + (X_testUCI[y] ** 2) + (X_testUCI[z] ** 2)))
+    X_testUCIArray = np.array(np.sqrt((X_testUCI[xUCI] ** 2) + (X_testUCI[yUCI] ** 2) + (X_testUCI[zUCI] ** 2)))
     # X_test = X_test.reshape(-1, 1)
 
     y_trainUCIArray = np.array(y_trainUCI)
@@ -129,6 +137,11 @@ def loadUCIHAR():
 
 
 def loadUMAFall():
+    X_trainUMAFall = None
+    y_trainUMAFall = None
+    X_testUMAFall = None
+    y_testUMAFall = None
+
     X_trainUMAFallArray = np.array(X_trainUMAFall)
     y_trainUMAFallArray = np.array(y_trainUMAFall)
     X_testUMAFallArray = np.array(X_testUMAFall)
@@ -138,20 +151,33 @@ def loadUMAFall():
 
 
 def loadWISDM():
-    columns = ['user', 'activity', 'timestamp', 'x-acceleration', 'y-accel', 'z-accel']
+    # carica il dataset WISDM e ne estrapola le etichette delle attivita' convertendole in numeri,
+    # estrae le misurazioni lungo i tre assi e ne calcola la magnitude il tutto all'interno di due
+    # dataset
+
+    y_labelConverted = []
+    columns = ['user', 'activity', 'timestamp', 'x-accel', 'y-accel', 'z-accel']
     df = pd.read_csv(wisdmPath, header=None, names=columns)
 
     # estrazione delle etichette delle attivita' presenti nel dataset e conversione utilizzando il dizionario
-    y_labels = df['activity'].copy()
+    y_label = df['activity'].copy()
     y_labelList = y_label.tolist()
-    y_labelConverted = []
 
     for i in range(0, len(y_labelList)):
         y_labelConverted.append(labelDictWISDM[y_labelList[i]])
 
     # trovare il modo di estrarre le misurazioni dei tre assi e copiarli in un nuovo dataset, dopodiche' calcolare la magnitudine e aggiungere una nuova feature al dataset
+    # nuovo dataset che contenga le quattro colonne con le misurazioni dei tre assi e la magnitudine
 
-    return y_labelConverted
+    Xtrain = pd.DataFrame(columns=[xWISDM, yWISDM, zWISDM, magWISDM], dtype='float64')
+
+    Xtrain[xWISDM] = df[xWISDM]
+    Xtrain[yWISDM] = df[yWISDM]
+    Xtrain[zWISDM] = df[zWISDM].str.replace(';', '').astype(float)
+
+    Xtrain[magWISDM] = np.sqrt((Xtrain[xWISDM] ** 2) + (Xtrain[yWISDM] ** 2) + (Xtrain[zWISDM] ** 2))
+
+    return y_labelConverted, Xtrain.copy()
 
 
 def loadData():
@@ -164,11 +190,11 @@ def loadData():
     X_trainUCIArray, X_testUCIArray, y_trainUCIArray, y_testUCIArray = loadUCIHAR()
 
     # carico UMAFall
-    # X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
+    X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
 
     # carico WISDM
-
-    X_trainWISDMArray, y_trainWISDMArray, X_testWISDMArray, y_testWISDMArray = loadWISDM()
+    # restituisce lo stesso numero di elementi in entrambe le parti
+    yDataWISDM, XdataWISDM = loadWISDM()
 
     # unione dei tre dataset
 
@@ -244,5 +270,8 @@ if __name__ == '__main__':
 
     # X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
 
-    # y_label = loadWISDM()
-    print()
+    # restituisce lo stesso numero di elementi in entrambe le parti
+    y_label, XtrainWISDM = loadWISDM()
+
+    print(y_label, XtrainWISDM)
+    print(len(y_label))
