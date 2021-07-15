@@ -11,6 +11,9 @@ from sklearn.utils import resample
 # absPath_ = os.getcwd()
 absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
 
+# etichetta dataset
+activity = ['Activity']
+
 # UCI HAR dataset path
 featuresPath = absPath_ + '/dataset/UCI HAR Dataset/features.txt'
 
@@ -115,25 +118,27 @@ def loadUCIHAR():
     # copia ed elaborazione dei dati contenuti nell'UCIHAR
     # UCI HAR Dataset caricato correttamente con il nome di ogni feature
 
-    X_trainUCI, X_testUCI, y_trainUCI, y_testUCI = get_human_dataset()
+    X, Y = get_human_dataset()
 
-    # TODO sistema creando un nuovo dataset contenente le misurazioni lungo i tre assi e la magnitudine come hai fatto in WISDM
+    x = 'x-accel'
+    y = 'y-accel'
+    z = 'z-accel'
+    mag = 'magnitude'
 
-    # creo la magnitudine utilizzando le tre colonne di dati
-    X_trainUCIArray = np.array(np.sqrt((X_trainUCI[xUCI] ** 2) + (X_trainUCI[yUCI] ** 2) + (X_trainUCI[zUCI] ** 2)))
-    # X_train = X_train.reshape(-1, 1)
+    columns = [x, y, z, mag]
+    X_df = pd.DataFrame(columns=columns, dtype='float64')
+    Y_df = pd.DataFrame(columns=activity, dtype='int32')
 
-    X_testUCIArray = np.array(np.sqrt((X_testUCI[xUCI] ** 2) + (X_testUCI[yUCI] ** 2) + (X_testUCI[zUCI] ** 2)))
-    # X_test = X_test.reshape(-1, 1)
+    X_df[x] = X[xUCI]
+    X_df[y] = X[yUCI]
+    X_df[z] = X[zUCI]
 
-    y_trainUCIArray = np.array(y_trainUCI)
-    y_testUCIArray = np.array(y_testUCI)
+    X_df[mag] = np.sqrt((X[xUCI] ** 2) + (X[yUCI] ** 2) + (X[zUCI] ** 2))
 
-    X_trainUCIArray, X_testUCIArray, y_trainUCIArray, y_testUCIArray = reduceSample(X_trainUCIArray, X_testUCIArray,
-                                                                                    y_trainUCIArray,
-                                                                                    y_testUCIArray)
+    X_df = X_df.reset_index(drop=True)
+    Y_df = Y.reset_index(drop=True)
 
-    return X_trainUCIArray, X_testUCIArray, y_trainUCIArray, y_testUCIArray
+    return X_df, Y_df
 
 
 def loadUMAFall():
@@ -187,7 +192,7 @@ def loadData():
     print('Inizio caricamento dataset...')
 
     # carico UCIHAR
-    X_trainUCIArray, X_testUCIArray, y_trainUCIArray, y_testUCIArray = loadUCIHAR()
+    XDataUCI, yDataUCI = loadUCIHAR()
 
     # carico UMAFall
     X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
@@ -262,7 +267,10 @@ def get_human_dataset():
     y_train = pd.read_csv(yTrainPathUCI, sep='\s+', header=None, names=['action'])
     y_test = pd.read_csv(yTestPathUCI, sep='\s+', header=None, names=['action'])
 
-    return X_train, X_test, y_train, y_test
+    X = pd.concat([X_train, X_test])
+    y = pd.concat([y_train, y_test])
+
+    return X, y
 
 
 if __name__ == '__main__':
@@ -271,7 +279,11 @@ if __name__ == '__main__':
     # X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
 
     # restituisce lo stesso numero di elementi in entrambe le parti
-    y_label, XtrainWISDM = loadWISDM()
+    # y_label, XtrainWISDM = loadWISDM()
 
-    print(y_label, XtrainWISDM)
-    print(len(y_label))
+    # print(y_label, XtrainWISDM)
+    # print(len(y_label))
+
+    x, y = loadUCIHAR()
+
+    print(x, y)
