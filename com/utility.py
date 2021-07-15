@@ -141,14 +141,12 @@ def get_human_dataset():
     return X, y
 
 
-def reduceSample(X_train, y_train, X_test, y_test):
-    # riduce la frequenza dei campioni da 50 Hz a 20Hz
-    XTrainReduced = resample(X_train, replace=True, n_samples=int((len(X_train) * 20) / 50))
-    yTrainReduced = resample(y_train, replace=True, n_samples=int((len(y_train) * 20) / 50))
-    XTestReduced = resample(X_test, replace=True, n_samples=int((len(X_test) * 20) / 50))
-    yTestReduced = resample(y_test, replace=True, n_samples=int((len(y_test) * 20) / 50))
+def reduceSample(Xdf, yDf):
+    # riduce la frequenza dei campioni da 50 Hz a 20Hz, da utilizzare con UCIHAR
+    Xdf = resample(Xdf, replace=True, n_samples=int((len(Xdf) * 20) / 50))
+    yDf = resample(yDf, replace=True, n_samples=int((len(yDf) * 20) / 50))
 
-    return XTrainReduced, yTrainReduced, XTestReduced, yTestReduced
+    return Xdf, yDf
 
 
 def loadNmerge(X_df, Y_df, path, label, checkpoint):
@@ -199,6 +197,7 @@ def loadUCIHAR():
     Y_df = Y_df.tolist()
 
     X_df = X_df.reset_index(drop=True)
+    X_df, Y_df = reduceSample(X_df, Y_df)
 
     return X_df, Y_df
 
@@ -286,21 +285,27 @@ def loadData(flag):
     # unione dei tre dataset
 
     if (flag == 0):
-        X_df = np.concatenate((XDataUCI, XdataWISDM))
+        X_df = pd.concat([XDataUCI, XdataWISDM])
+        X_df = X_df.reset_index(drop=True)
+
         y_df = np.concatenate((yDataUCI, yDataWISDM))
 
         X_val = XDataUMAFall
         y_val = yDataUMAFall
 
     elif (flag == 1):
-        X_df = np.concatenate((XdataWISDM, XDataUMAFall))
+        X_df = pd.concat([XdataWISDM, XDataUMAFall])
+        X_df = X_df.reset_index(drop=True)
+
         y_df = np.concatenate((yDataWISDM, yDataUMAFall))
 
         X_val = XDataUCI
         y_val = yDataUCI
 
     elif (flag == 2):
-        X_df = np.concatenate((XDataUCI, XDataUMAFall))
+        X_df = pd.concat([XDataUCI, XDataUMAFall])
+        X_df = X_df.reset_index(drop=True)
+
         y_df = np.concatenate((yDataUCI, yDataUMAFall))
 
         X_val = XdataWISDM
@@ -315,8 +320,8 @@ if __name__ == '__main__':
 
     print(XData)
     print('\n')
-    print(YData)
+    print(len(YData))
     print('\n')
     print(x_val)
     print('\n')
-    print(y_val)
+    print(len(y_val))
