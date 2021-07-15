@@ -42,10 +42,18 @@ yWISDM = 'y-accel'
 zWISDM = 'z-accel'
 magWISDM = 'magnitude'
 
-# UMAFALL dataset path, da sistemare perche' bisogna prendere solo alcuni file e non tutti
+# UMAFALL dataset path, con etichette dei dataset
 
 X_trainUMAFall = absPath_ + '/dataset/UMAFall_Dataset'
 
+# etichette per i dataset che carico
+
+x = 'x-accel'
+y = 'y-accel'
+z = 'z-accel'
+mag = 'magnitude'
+
+finalColumns = [x, y, z, mag]
 # posizione di salvataggio checkpoint dei modelli
 checkPointPathCNN = absPath_ + '/checkpoint/CNN'
 checkPointPathBLSTM = absPath_ + '/checkpoint/BLSTM'
@@ -70,6 +78,8 @@ labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
                 'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
 
 labelDictWISDM = {'Walking': 0, 'Upstairs': 1, 'Downstairs': 2, 'Sitting': 3, 'Standing': 4, 'Jogging': 6}
+
+labelDictUMAFALL = {}
 
 
 def norm(data):
@@ -104,6 +114,41 @@ def load_y(y_path):
     return y_ - 1
 
 
+def get_new_feature_name_df(old_feature_name_df):
+    feature_dup_df = pd.DataFrame(data=old_feature_name_df.groupby('column_name').cumcount(),
+                                  columns=['dup_cnt'])
+    feature_dup_df = feature_dup_df.reset_index()
+    new_feature_name_df = pd.merge(old_feature_name_df.reset_index(),
+                                   feature_dup_df,
+                                   how='outer')
+    new_feature_name_df['column_name'] = new_feature_name_df[['column_name', 'dup_cnt']].apply(
+        lambda x: x[0] + '_' + str(x[1]) if x[1] > 0 else x[0], axis=1)
+    new_feature_name_df = new_feature_name_df.drop(['index'], axis=1)
+    return new_feature_name_df
+
+
+def get_human_dataset():
+    feature_name_df = pd.read_csv(featuresPath,
+                                  sep='\s+',
+                                  header=None,
+                                  names=['column_index', 'column_name'])
+
+    new_feature_name_df = get_new_feature_name_df(feature_name_df)
+
+    feature_name = new_feature_name_df.iloc[:, 1].values.tolist()
+
+    X_train = pd.read_csv(xTrainPathUCI, sep='\s+', names=feature_name)
+    X_test = pd.read_csv(xTestPathUCI, sep='\s+', names=feature_name)
+
+    y_train = pd.read_csv(yTrainPathUCI, sep='\s+', header=None, names=['action'])
+    y_test = pd.read_csv(yTestPathUCI, sep='\s+', header=None, names=['action'])
+
+    X = pd.concat([X_train, X_test])
+    y = pd.concat([y_train, y_test])
+
+    return X, y
+
+
 def reduceSample(X_train, y_train, X_test, y_test):
     # riduce la frequenza dei campioni da 50 Hz a 20Hz
     XTrainReduced = resample(X_train, replace=True, n_samples=int((len(X_train) * 20) / 50))
@@ -117,16 +162,11 @@ def reduceSample(X_train, y_train, X_test, y_test):
 def loadUCIHAR():
     # copia ed elaborazione dei dati contenuti nell'UCIHAR
     # UCI HAR Dataset caricato correttamente con il nome di ogni feature
+    # restituisce due dataset
 
     X, Y = get_human_dataset()
 
-    x = 'x-accel'
-    y = 'y-accel'
-    z = 'z-accel'
-    mag = 'magnitude'
-
-    columns = [x, y, z, mag]
-    X_df = pd.DataFrame(columns=columns, dtype='float64')
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
     Y_df = pd.DataFrame(columns=activity, dtype='int32')
 
     X_df[x] = X[xUCI]
@@ -142,23 +182,19 @@ def loadUCIHAR():
 
 
 def loadUMAFall():
-    X_trainUMAFall = None
-    y_trainUMAFall = None
-    X_testUMAFall = None
-    y_testUMAFall = None
+    # carica i dati contenuti nei vari file del dataset (e' stata fatta una selezione dei file) e dovrebbe restituire due dataset
+    columns = ['TimeStamp', 'Sample No', 'X - Axis', 'Y - Axis', 'Z - Axis', 'Sensor Type', 'Sensor ID']
 
-    X_trainUMAFallArray = np.array(X_trainUMAFall)
-    y_trainUMAFallArray = np.array(y_trainUMAFall)
-    X_testUMAFallArray = np.array(X_testUMAFall)
-    y_testUMAFallArray = np.array(y_testUMAFall)
+    X_df = pd.DataFrame(columns=finalColumns)
 
-    return X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray
+    return X_df, Y_df
 
 
 def loadWISDM():
     # carica il dataset WISDM e ne estrapola le etichette delle attivita' convertendole in numeri,
     # estrae le misurazioni lungo i tre assi e ne calcola la magnitude il tutto all'interno di due
     # dataset
+    # restituisce un dataset e una lista
 
     y_labelConverted = []
     columns = ['user', 'activity', 'timestamp', 'x-accel', 'y-accel', 'z-accel']
@@ -168,21 +204,22 @@ def loadWISDM():
     y_label = df['activity'].copy()
     y_labelList = y_label.tolist()
 
+    # traduzione delle etichette testuali in numeri int
     for i in range(0, len(y_labelList)):
         y_labelConverted.append(labelDictWISDM[y_labelList[i]])
 
-    # trovare il modo di estrarre le misurazioni dei tre assi e copiarli in un nuovo dataset, dopodiche' calcolare la magnitudine e aggiungere una nuova feature al dataset
-    # nuovo dataset che contenga le quattro colonne con le misurazioni dei tre assi e la magnitudine
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
 
-    Xtrain = pd.DataFrame(columns=[xWISDM, yWISDM, zWISDM, magWISDM], dtype='float64')
+    X_df[xWISDM] = df[xWISDM]
+    X_df[yWISDM] = df[yWISDM]
+    # pulizia dei dati caricati, assieme ai numeri viene caricato anche il simbolo ;
+    # e quindi non viene riconosciuto come un valore numerico, in questa maniera lo si rimuove
+    X_df[zWISDM] = df[zWISDM].str.replace(';', '').astype(float)
 
-    Xtrain[xWISDM] = df[xWISDM]
-    Xtrain[yWISDM] = df[yWISDM]
-    Xtrain[zWISDM] = df[zWISDM].str.replace(';', '').astype(float)
+    # calcolo della magnitudine
+    X_df[magWISDM] = np.sqrt((X_df[xWISDM] ** 2) + (X_df[yWISDM] ** 2) + (X_df[zWISDM] ** 2))
 
-    Xtrain[magWISDM] = np.sqrt((Xtrain[xWISDM] ** 2) + (Xtrain[yWISDM] ** 2) + (Xtrain[zWISDM] ** 2))
-
-    return y_labelConverted, Xtrain.copy()
+    return X_df.copy(), y_labelConverted
 
 
 def loadData():
@@ -238,41 +275,6 @@ def loadData():
     return X_train, y_train, X_test, y_test, X_val, y_val
 
 
-def get_new_feature_name_df(old_feature_name_df):
-    feature_dup_df = pd.DataFrame(data=old_feature_name_df.groupby('column_name').cumcount(),
-                                  columns=['dup_cnt'])
-    feature_dup_df = feature_dup_df.reset_index()
-    new_feature_name_df = pd.merge(old_feature_name_df.reset_index(),
-                                   feature_dup_df,
-                                   how='outer')
-    new_feature_name_df['column_name'] = new_feature_name_df[['column_name', 'dup_cnt']].apply(
-        lambda x: x[0] + '_' + str(x[1]) if x[1] > 0 else x[0], axis=1)
-    new_feature_name_df = new_feature_name_df.drop(['index'], axis=1)
-    return new_feature_name_df
-
-
-def get_human_dataset():
-    feature_name_df = pd.read_csv(featuresPath,
-                                  sep='\s+',
-                                  header=None,
-                                  names=['column_index', 'column_name'])
-
-    new_feature_name_df = get_new_feature_name_df(feature_name_df)
-
-    feature_name = new_feature_name_df.iloc[:, 1].values.tolist()
-
-    X_train = pd.read_csv(xTrainPathUCI, sep='\s+', names=feature_name)
-    X_test = pd.read_csv(xTestPathUCI, sep='\s+', names=feature_name)
-
-    y_train = pd.read_csv(yTrainPathUCI, sep='\s+', header=None, names=['action'])
-    y_test = pd.read_csv(yTestPathUCI, sep='\s+', header=None, names=['action'])
-
-    X = pd.concat([X_train, X_test])
-    y = pd.concat([y_train, y_test])
-
-    return X, y
-
-
 if __name__ == '__main__':
     # X_train, y_train, X_test, y_test = loadData()
 
@@ -284,6 +286,6 @@ if __name__ == '__main__':
     # print(y_label, XtrainWISDM)
     # print(len(y_label))
 
-    x, y = loadUCIHAR()
+    x, y = loadWISDM()
 
-    print(x, y)
+    print(x)
