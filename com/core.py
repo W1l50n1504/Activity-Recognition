@@ -1,34 +1,62 @@
-from abc import ABCMeta, abstractmethod
-from tensorflow.keras.utils import to_categorical
-from utility import *
+from abc import ABCMeta, abstractmethod, ABC
 
-import numpy as np
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+
+from tensorflow.keras import Sequential
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout, BatchNormalization
+from tensorflow.keras.optimizers import Adam
+
+from mlxtend.plotting import plot_confusion_matrix
+
+from com.utility import *
 
 
 class BaseModel(metaclass=ABCMeta):
 
-    def __init__(self, X_train_signals_paths, X_test_signals_paths):
-        self.X_train = load_X(X_train_signals_paths)
-        self.X_test = load_X(X_test_signals_paths)
+    def __init__(self):
+        self.checkpoint = None
+        self.y_train = None
+        self.y_test = None
+        self.y_val = None
 
-    def encode(self):
-        # forse da eliminare
-        self.train_y = self.train_y - 1
-        self.test_y = self.test_y - 1
-        # one hot encode y
-        self.train_y = to_categorical(self.train_y)
-        self.test_y = to_categorical(self.test_y)
+        self.X_train = None
+        self.X_test = None
+        self.X_val = None
+        self.history = None
+        self.loadData()
+        self.dataProcessing()
+
+    def loadData(self):
+        """:cvar"""
+        self.X_train, self.y_train, self.X_test, self.y_test, self.X_val, self.y_val = loadData()
 
     @abstractmethod
-    def processData(self):
+    def dataProcessing(self):
+        """
+        tldr
+        """
+
+    @abstractmethod
+    def modelCreation(self):
+        """:cvar"""
+
+    @abstractmethod
+    def fit(self):
+        ''''
+        verrà implementato dai modelli
+        '''
+
+    @abstractmethod
+    def plot(self):
         """
 
         :return:
         """
 
-
-    @abstractmethod
-    def fit(self):
-        ''''
-        same thing
-        '''
+    def main(self):
+        self.modelCreation()
+        self.fit()
+        self.plot()

@@ -1,83 +1,82 @@
-import numpy as np
 import os
-import tensorflow
 
-from tensorflow.keras.utils import to_categorical
+import numpy as np
+import pandas as pd
+from sklearn.utils import resample
 
 absPath_ = os.getcwd()
+# absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
 
-X_train_signals_paths = absPath_ + '/dataset/train/X_train.txt'
-X_test_signals_paths = absPath_ + '/dataset/test/X_test.txt'
+# etichetta dataset
+activity = ['Activity']
 
-y_train_path = absPath_ + '/dataset/train/y_train.txt'
-y_test_path = absPath_ + '/dataset/test/y_test.txt'
+# UCI HAR dataset path
+featuresPath = absPath_ + '/dataset/UCI HAR Dataset/features.txt'
 
-pathToSignalTrain = absPath_ + '/dataset/train/Inertial Signals/'
-pathToSignalTest = absPath_ + '/dataset/test/Inertial Signals/'
+xTrainPathUCI = absPath_ + '/dataset/UCI HAR Dataset/train/X_train.txt'
+xTestPathUCI = absPath_ + '/dataset/UCI HAR Dataset/test/X_test.txt'
 
-nameXtrain = 'total_acc_x_train.txt'
-nameYtrain = 'total_acc_y_train.txt'
-nameZtrain = 'total_acc_z_train.txt'
+yTrainPathUCI = absPath_ + '/dataset/UCI HAR Dataset/train/y_train.txt'
+yTestPathUCI = absPath_ + '/dataset/UCI HAR Dataset/test/y_test.txt'
 
-nameXtest = 'total_acc_x_test.txt'
-nameYtest = 'total_acc_y_test.txt'
-nameZtest = 'total_acc_z_test.txt'
+xacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_x_test.txt'
+yacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_y_test.txt'
+zacc = absPath_ + '/dataset/UCI HAR Dataset/test/Inertial Signals/body_acc_z_test.txt'
 
-hmmGraph = absPath_ + '/grafici/Markov/grafico.png'
-hmmDistribution = absPath_ + '/grafici/Markov/distribution.png'
+# etichette dell'UCIHAR utili
+xUCI = 'tBodyAcc-mean()-X'
+yUCI = 'tBodyAcc-mean()-Y'
+zUCI = 'tBodyAcc-mean()-Z'
+magUCI = 'magnitude'
 
+# WISDM dataset path
+
+wisdmPath = absPath_ + '/dataset/WISDM_ar_v1.1/WISDM_ar_v1.1_raw.txt'
+
+xWISDM = 'x-accel'
+yWISDM = 'y-accel'
+zWISDM = 'z-accel'
+magWISDM = 'magnitude'
+
+# UMAFALL dataset path, con etichette dei dataset
+
+umafallPath = absPath_ + '/dataset/UMAFall_Dataset'
+
+# etichette per i dataset che carico
+columnsUMAFALL = ['TimeStamp', 'Sample No', 'X - Axis', 'Y - Axis', 'Z - Axis', 'Sensor Type', 'Sensor ID']
+
+x = 'x-accel'
+y = 'y-accel'
+z = 'z-accel'
+mag = 'magnitude'
+
+finalColumns = [x, y, z, mag]
+# posizione di salvataggio checkpoint dei modelli
 checkPointPathCNN = absPath_ + '/checkpoint/CNN'
 checkPointPathBLSTM = absPath_ + '/checkpoint/BLSTM'
-
-trainingValAccCNN = absPath_ + '/grafici/CNN/CNNAcc.png'
-trainingValAccBLSTM = absPath_ + '/grafici/BLSTM/BLSTMAcc.png'
-
-TrainingValAucCNN = absPath_ + '/grafici/CNN/CNNAuc.png'
-TrainingValAucBLSTM = absPath_ + '/grafici/BLSTM/BLSTMAuc.png'
-
-ModelLossCNN = absPath_ + '/grafici/CNN/ModelLossCNN.png'
-ModelLossBLSTM = absPath_ + '/grafici/BLSTM/ModelLossBLSTM.png'
-
 checkPointPathHMM = absPath_ + '/checkpoint/HMM'
 
-labelDict = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
-             'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
+# posizione salvataggio immagini dei grafici dei modelli
 
+# grafici CNN
+confusionMatrixCNN = absPath_ + '/graphs/cnn/confusionMatrixCNN.png'
+trainingValAccCNN = absPath_ + '/graphs/cnn/trainingValAccCNN.png'
+trainingValAucCNN = absPath_ + '/graphs/cnn/trainingValAucCNN.png'
+modelLossCNN = absPath_ + '/graphs/cnn/modelLossCNN.png'
 
-def norm(data):
-    return (data - data.mean()) / data.std() + np.finfo(np.float32).eps
+# grafici BLSTM
+confusionMatrixBLSTM = absPath_ + '/graphs/cnn/heatMapBLSTM.png'
+trainingValAccBLSTM = absPath_ + '/graphs/cnn/trainingValAccBLSTM.png'
+TrainingValAucBLSTM = absPath_ + '/graphs/cnn/trainingValAucBLSTM.png'
+ModelLossBLSTM = absPath_ + '/graphs/cnn/modelLossBLSTM.png'
 
+# dizionari riguardanti le attività registrate dai dataset
+labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
+                'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
 
-def produceMagnitude(flag):
-    magnitude = []
-    if flag:
+labelDictWISDM = {'Walking': 0, 'Upstairs': 1, 'Downstairs': 2, 'Sitting': 3, 'Standing': 4, 'Jogging': 6}
 
-        x = norm(load_X(pathToSignalTrain + nameXtrain))
-        y = norm(load_X(pathToSignalTrain + nameYtrain))
-        z = norm(load_X(pathToSignalTrain + nameZtrain))
-
-    else:
-        x = norm(load_X(pathToSignalTest + nameXtest))
-        y = norm(load_X(pathToSignalTest + nameYtest))
-        z = norm(load_X(pathToSignalTest + nameZtest))
-
-    for i in range(0, len(x)):
-        magnitude.append(np.sqrt(x[i] ** 2 + y[i] ** 2 + z[i] ** 2))
-
-    # print('\n', magnitude)
-
-    return magnitude
-
-
-def encode(train_X, train_y, test_X, test_y):
-    # forse da eliminare
-    train_y = train_y - 1
-    test_y = test_y - 1
-    # one hot encode y
-    train_y = to_categorical(train_y)
-    test_y = to_categorical(test_y)
-
-    return train_X, train_y, test_X, test_y
+labelDictUMAFALL = {'Walking': 0, 'Laying': 5, 'Jogging': 6, 'Hopping': 7, 'Falling': 8}
 
 
 def load_X(X_signals_paths):
@@ -107,243 +106,217 @@ def load_y(y_path):
     return y_ - 1
 
 
-def loadDataHMM():
-    print('caricamento dei dati di training e test')
-    X_train = produceMagnitude(0)
-    X_test = produceMagnitude(1)
-
-    y_train = load_y(y_train_path)
-    y_test = load_y(y_test_path)
-
-    # print('X_train', X_train)
-    # print('y_train', y_train)
-    # print('X_test', X_test)
-    # print('y_test', y_test)
-
-    print('fine caricamento')
-    return X_train, y_train, X_test, y_test
+def get_new_feature_name_df(old_feature_name_df):
+    feature_dup_df = pd.DataFrame(data=old_feature_name_df.groupby('column_name').cumcount(),
+                                  columns=['dup_cnt'])
+    feature_dup_df = feature_dup_df.reset_index()
+    new_feature_name_df = pd.merge(old_feature_name_df.reset_index(),
+                                   feature_dup_df,
+                                   how='outer')
+    new_feature_name_df['column_name'] = new_feature_name_df[['column_name', 'dup_cnt']].apply(
+        lambda x: x[0] + '_' + str(x[1]) if x[1] > 0 else x[0], axis=1)
+    new_feature_name_df = new_feature_name_df.drop(['index'], axis=1)
+    return new_feature_name_df
 
 
-def loadDataCNN():
-    print('caricamento dei dati di training e test')
+def get_human_dataset():
+    feature_name_df = pd.read_csv(featuresPath,
+                                  sep='\s+',
+                                  header=None,
+                                  names=['column_index', 'column_name'])
 
-    X_train = load_X(X_train_signals_paths)
-    X_test = load_X(X_test_signals_paths)
+    new_feature_name_df = get_new_feature_name_df(feature_name_df)
 
-    y_train = load_y(y_train_path)
-    y_test = load_y(y_test_path)
+    feature_name = new_feature_name_df.iloc[:, 1].values.tolist()
 
-    print('fine caricamento')
-    return X_train, y_train, X_test, y_test
+    X_train = pd.read_csv(xTrainPathUCI, sep='\s+', names=feature_name)
+    X_test = pd.read_csv(xTestPathUCI, sep='\s+', names=feature_name)
 
+    y_train = pd.read_csv(yTrainPathUCI, sep='\s+', header=None, names=['action'])
+    y_test = pd.read_csv(yTestPathUCI, sep='\s+', header=None, names=['action'])
 
-def loadDataBLSTM():
-    print('caricamento dei dati di training e test')
+    X = pd.concat([X_train, X_test])
+    y = pd.concat([y_train, y_test])
 
-    X_train = load_X(X_train_signals_paths)
-    X_test = load_X(X_test_signals_paths)
-
-    y_train = load_y(y_train_path)
-    y_test = load_y(y_test_path)
-
-    print('fine caricamento')
-    return X_train, y_train, X_test, y_test
+    return X, y
 
 
-def dataProcessingHMM(X_train, y_train, X_test, y_test):
-    print('elaborazione dei dati...')
+def reduceSample(X_train, y_train, X_test, y_test):
+    # riduce la frequenza dei campioni da 50 Hz a 20Hz
+    XTrainReduced = resample(X_train, replace=True, n_samples=int((len(X_train) * 20) / 50))
+    yTrainReduced = resample(y_train, replace=True, n_samples=int((len(y_train) * 20) / 50))
+    XTestReduced = resample(X_test, replace=True, n_samples=int((len(X_test) * 20) / 50))
+    yTestReduced = resample(y_test, replace=True, n_samples=int((len(y_test) * 20) / 50))
 
-    X = np.concatenate((X_train, X_test))
-    y = np.concatenate((y_train, y_test))
-
-    X = np.log(X)
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
-
-    #enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-    #enc = enc.fit(y_train)
-    """
-    y_train = enc.transform(y_train)
-    y_test = enc.transform(y_test)
-    y_val = enc.transform(y_val)
-    X_train = X_train.reshape(6488, 128)
-    X_test = X_test.reshape(3090, 128)
-    X_val = X_val.reshape(721, 128)
-    """
-    X_train = X_train.reshape((X_train.shape[0] * X_train.shape[1]), X_train.shape[2])
-    X_test = X_test.reshape((X_test.shape[0] * X_test.shape[1]), X_test.shape[2])
-    X_val = X_val.reshape((X_val.shape[0] * X_val.shape[1]), X_val.shape[2])
-
-    X_train = X_train.reshape(-1, 1)
-    X_test = X_test.reshape(-1, 1)
-    X_val = X_val.reshape(-1, 1)
-
-    y_train = y_train.reshape(-1, 1)
-    y_test = y_test.reshape(-1, 1)
-    y_val = y_val.reshape(-1, 1)
-
-    print('fine elaborazione dati')
-    return X_train, y_train, X_test, y_test, X_val, y_val
+    return XTrainReduced, yTrainReduced, XTestReduced, yTestReduced
 
 
-def dataProcessingCNN(X_train, y_train, X_test, y_test):
-    print('elaborazione dei dati...')
+def loadNmerge(X_df, Y_df, path, label, checkpoint):
+    # Funzione che carica i dati contenuti nei file del dataset UMAFALL ne carica i dati selezionando solo le feature utili
+    # e li concatena nel dataset finale di UMAFALL
 
-    X = np.concatenate((X_train, X_test))
-    y = np.concatenate((y_train, y_test))
+    df = pd.read_csv(umafallPath + path, header=None, names=columnsUMAFALL, sep=';')
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
+    # ho preso solo le misurazioni dell'accelerometro e della posizione che mi interessa
+    df = df.loc[(df['Sensor Type'] == 0) & (df['Sensor ID'] == 0)]
 
-    enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-    enc = enc.fit(y_train)
+    finalDf = pd.DataFrame(columns=finalColumns)
 
-    y_train = enc.transform(y_train)
-    y_test = enc.transform(y_test)
-    y_val = enc.transform(y_val)
+    finalDf[x] = df['X - Axis']
+    finalDf[y] = df['Y - Axis']
+    finalDf[z] = df['Z - Axis']
+    finalDf[mag] = np.sqrt((finalDf[x] ** 2) + (finalDf[y] ** 2) + (finalDf[z] ** 2))
 
-    # print('dimensione reshape', X_val[..., np.newaxis].shape)
+    X_df = pd.concat([X_df, finalDf])
+    X_df = X_df.reset_index(drop=True)
 
-    X_train = X_train.reshape(6488, 561, 1, 1)
-    X_test = X_test.reshape(3090, 561, 1, 1)
-    X_val = X_val.reshape(721, 561, 1, 1)
+    length = len(X_df)
 
-    print('fine elaborazione dati')
-    return X_train, y_train, X_test, y_test, X_val, y_val
+    for i in range(checkpoint, length):
+        Y_df.append(labelDictUMAFALL[label])
 
+    checkpoint = length
 
-def dataProcessingBLSTM(X_train, y_train, X_test, y_test):
-    print('elaborazione dei dati...')
-
-    X = np.concatenate((X_train, X_test))
-
-    y = np.concatenate((y_train, y_test))
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
-
-    enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-    enc = enc.fit(y_train)
-
-    y_train = enc.transform(y_train)
-    y_test = enc.transform(y_test)
-    y_val = enc.transform(y_val)
-    print('fine elaborazione dati')
-
-    return X_train, y_train, X_test, y_test, X_val, y_val
+    return X_df, Y_df, checkpoint
 
 
-def plotHMM(X_train, y_train, X_test, y_test, X_val, y_val):
-    # non va bene come criterio di controllo della precisione del modello,
-    # e' necessario trovare un metodo migliore per valutare la precisione del sistema per compararla con gli altri approcci
+def loadUCIHAR():
+    # copia ed elaborazione dei dati contenuti nell'UCIHAR
+    # UCI HAR Dataset caricato correttamente con il nome di ogni feature
+    # restituisce due dataset
 
-    lr = loadModel()
-    print('Calcolo degli score del modello...')
-    train_scores = []
-    test_scores = []
-    val_scores = []
-    X_train = X_train.reshape(1, -1).tolist()
-    X_test = X_test.reshape(1, -1).tolist()
-    X_val = X_val.reshape(1, -1).tolist()
+    X, Y = get_human_dataset()
 
-    for i in range(0, len(y_train)):
-        train_score = lr.score(X_train)
-        train_scores.append(train_score)
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
+    Y_df = pd.DataFrame(columns=activity, dtype='int32')
 
-    for i in range(0, len(y_test)):
-        test_score = lr.score(X_test)
-        test_scores.append(test_score)
+    X_df[x] = X[xUCI]
+    X_df[y] = X[yUCI]
+    X_df[z] = X[zUCI]
+    X_df[mag] = np.sqrt((X[xUCI] ** 2) + (X[yUCI] ** 2) + (X[zUCI] ** 2))
 
-    for i in range(0, len(y_val)):
-        val_score = lr.score(X_val)
-        val_scores.append(val_score)
+    Y_df = Y['action'].copy()
+    Y_df = Y_df.tolist()
 
-    length_train = len(train_scores)
-    length_val = len(val_scores) + length_train
-    length_test = len(test_scores) + length_val
+    X_df = X_df.reset_index(drop=True)
 
-    plt.figure(figsize=(7, 5))
-    plt.scatter(np.arange(length_train), train_scores, c='b', label='trainset')
-    plt.scatter(np.arange(length_train, length_val), val_scores, c='r', label='testset - imitation')
-    plt.scatter(np.arange(length_val, length_test), test_scores, c='g', label='testset - original')
-    plt.title(f'User: 1 | HMM states: 6 | GMM components: 2')
-    plt.legend(loc='lower right')
-
-    plt.savefig(hmmGraph)
-    plt.show()
+    return X_df, Y_df
 
 
-def plot_learningCurveCNN(history, epochs):
-    # Plot training & validation accuracy values
-    plt.figure(figsize=(15, 8))
-    epoch_range = range(1, epochs + 1)
-    plt.plot(epoch_range, history.history['accuracy'])
-    plt.plot(epoch_range, history.history['val_accuracy'])
-    plt.title('Model accuracy')
-    plt.ylabel('Validation Accuracy')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Val'], loc='upper left')
-    plt.savefig(trainingValAccCNN)
-    # plt.show()
+def loadUMAFall():
+    # carica i dati contenuti nei vari file del dataset (e' stata fatta una selezione dei file) e dovrebbe restituire due
+    # % Accelerometer = 0 sensor type da utilizzare
 
-    # Plot training & validation auc values
-    plt.figure(figsize=(15, 8))
-    epoch_range = range(1, epochs + 1)
-    plt.plot(epoch_range, history.history['auc'])
-    plt.plot(epoch_range, history.history['val_auc'])
-    plt.title('Model auc')
-    plt.ylabel('auc')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Val'], loc='upper left')
-    plt.savefig(TrainingValAucCNN)
-    # plt.show()
+    selectedFeatures = ['X - Axis', 'Y - Axis', 'Z - Axis', 'magnitude']
+    X_df = pd.DataFrame(columns=finalColumns)
+    Y_df = []
 
-    # Plot training & validation loss values
-    plt.figure(figsize=(15, 8))
-    plt.plot(epoch_range, history.history['loss'])
-    plt.plot(epoch_range, history.history['val_loss'])
-    plt.title('Model loss')
-    plt.ylabel('Loss')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Val'], loc='upper left')
-    plt.savefig(ModelLossCNN)
-    # plt.show()
+    # caricato il dataset levando ; che univa tutte le colonne
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv',
+                                        'Walking', 0)
+
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_ADL_Hopping_1_2016-06-13_20-37-40.csv',
+                                        'Hopping', checkpoint)
+
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_ADL_Jogging_1_2016-06-13_20-40-29.csv',
+                                        'Jogging', checkpoint)
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df,
+                                        '/UMAFall_Subject_02_ADL_LyingDown_OnABed_1_2016-06-13_20-32-16.csv',
+                                        'Laying', checkpoint)
+
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_backwardFall_1_2016-06-13_20-51-32.csv',
+                                        'Falling', checkpoint)
+
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_forwardFall_1_2016-06-13_20-43-52.csv',
+                                        'Falling', checkpoint)
+
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_lateralFall_1_2016-06-13_20-49-17.csv',
+                                        'Falling', checkpoint)
+
+    return X_df, Y_df
 
 
-def plot_learningCurveBLSTM(history, epochs):
-    # Plot training & validation accuracy values
-    plt.figure(figsize=(15, 8))
-    epoch_range = range(1, epochs + 1)
-    plt.plot(epoch_range, history.history['accuracy'])
-    plt.plot(epoch_range, history.history['val_accuracy'])
-    plt.title('Model accuracy')
-    plt.ylabel('Validation Accuracy')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Val'], loc='upper left')
-    plt.savefig(trainingValAccBLSTM)
-    # plt.show()
+def loadWISDM():
+    # carica il dataset WISDM e ne estrapola le etichette delle attivita' convertendole in numeri,
+    # estrae le misurazioni lungo i tre assi e ne calcola la magnitude il tutto all'interno di due
+    # dataset
+    # restituisce un dataset e una lista
 
-    # Plot training & validation auc values
-    plt.figure(figsize=(15, 8))
-    epoch_range = range(1, epochs + 1)
-    plt.plot(epoch_range, history.history['auc'])
-    plt.plot(epoch_range, history.history['val_auc'])
-    plt.title('Model auc')
-    plt.ylabel('auc')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Val'], loc='upper left')
-    plt.savefig(TrainingValAucBLSTM)
-    # plt.show()
+    y_labelConverted = []
+    columns = ['user', 'activity', 'timestamp', 'x-accel', 'y-accel', 'z-accel']
+    df = pd.read_csv(wisdmPath, header=None, names=columns)
 
-    # Plot training & validation loss values
-    plt.figure(figsize=(15, 8))
-    plt.plot(epoch_range, history.history['loss'])
-    plt.plot(epoch_range, history.history['val_loss'])
-    plt.title('Model loss')
-    plt.ylabel('Loss')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Val'], loc='upper left')
-    plt.savefig(ModelLossBLSTM)
-    # plt.show()
+    # estrazione delle etichette delle attivita' presenti nel dataset e conversione utilizzando il dizionario
+    y_label = df['activity'].copy()
+    y_labelList = y_label.tolist()
+
+    # traduzione delle etichette testuali in numeri int
+    for i in range(0, len(y_labelList)):
+        y_labelConverted.append(labelDictWISDM[y_labelList[i]])
+
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
+
+    X_df[xWISDM] = df[xWISDM]
+    X_df[yWISDM] = df[yWISDM]
+    # pulizia dei dati caricati, assieme ai numeri viene caricato anche il simbolo ;
+    # e quindi non viene riconosciuto come un valore numerico, in questa maniera lo si rimuove
+    X_df[zWISDM] = df[zWISDM].str.replace(';', '').astype(float)
+
+    # calcolo della magnitudine
+    X_df[magWISDM] = np.sqrt((X_df[xWISDM] ** 2) + (X_df[yWISDM] ** 2) + (X_df[zWISDM] ** 2))
+
+    return X_df.copy(), y_labelConverted
+
+
+def loadData(flag):
+    # obiettivi, caricare i tre dataset,downsampling di ucihar da 50Hz a 20Hz, rimappare la label
+    # per unificarle e avere tutte le attivita' in sincrono
+
+    print('Inizio caricamento dataset...')
+
+    # carico UCIHAR
+    XDataUCI, yDataUCI = loadUCIHAR()
+
+    # carico UMAFall
+    XDataUMAFall, yDataUMAFall = loadUMAFall()
+
+    # carico WISDM
+    XdataWISDM, yDataWISDM = loadWISDM()
+
+    # unione dei tre dataset
+
+    if (flag == 0):
+        X_df = np.concatenate((XDataUCI, XdataWISDM))
+        y_df = np.concatenate((yDataUCI, yDataWISDM))
+
+        X_val = XDataUMAFall
+        y_val = yDataUMAFall
+
+    elif (flag == 1):
+        X_df = np.concatenate((XdataWISDM, XDataUMAFall))
+        y_df = np.concatenate((yDataWISDM, yDataUMAFall))
+
+        X_val = XDataUCI
+        y_val = yDataUCI
+
+    elif (flag == 2):
+        X_df = np.concatenate((XDataUCI, XDataUMAFall))
+        y_df = np.concatenate((yDataUCI, yDataUMAFall))
+
+        X_val = XdataWISDM
+        y_val = yDataWISDM
+
+    return X_df, y_df, X_val, y_val
+
+
+if __name__ == '__main__':
+    # caricamento e concatenazione dei vari dataset eseguita con successo, inserire 0,1 o 2 come argument di loadData per otterenere una diversa combinazione di dataset
+    XData, YData, x_val, y_val = loadData(0)
+
+    print(XData)
+    print('\n')
+    print(YData)
+    print('\n')
+    print(x_val)
+    print('\n')
+    print(y_val)
