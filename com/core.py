@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod, ABC
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
-
+from tensorflow.python.keras.layers import Bidirectional, LSTM
 from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout, BatchNormalization

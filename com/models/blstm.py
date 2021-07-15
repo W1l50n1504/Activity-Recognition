@@ -1,3 +1,4 @@
+
 from com.core import *
 from com.utility import *
 
@@ -38,7 +39,8 @@ class BLSTM(BaseModel, ABC):
 
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-        self.X_train,self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1, random_state=42)
+        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1,
+                                                                              random_state=42)
 
         enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
         enc = enc.fit(self.y_train)
@@ -52,6 +54,7 @@ class BLSTM(BaseModel, ABC):
         print('Creazione Modello...')
 
         self.model = Sequential()
+
         self.model.add(
             Bidirectional(
                 LSTM(units=64, return_sequences=True, input_shape=[self.X_train.shape[1], self.X_train.shape[2]])))
