@@ -1,9 +1,7 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import os
-import pandas as pd
-import seaborn as sns
 
+import numpy as np
+import pandas as pd
 from sklearn.utils import resample
 
 absPath_ = os.getcwd()
@@ -45,6 +43,7 @@ magWISDM = 'magnitude'
 umafallPath = absPath_ + '/dataset/UMAFall_Dataset'
 
 # etichette per i dataset che carico
+columnsUMAFALL = ['TimeStamp', 'Sample No', 'X - Axis', 'Y - Axis', 'Z - Axis', 'Sensor Type', 'Sensor ID']
 
 x = 'x-accel'
 y = 'y-accel'
@@ -77,12 +76,7 @@ labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
 
 labelDictWISDM = {'Walking': 0, 'Upstairs': 1, 'Downstairs': 2, 'Sitting': 3, 'Standing': 4, 'Jogging': 6}
 
-labelDictUMAFALL = {}
-
-
-def norm(data):
-    # da eliminare
-    return (data - data.mean()) / data.std() + np.finfo(np.float32).eps
+labelDictUMAFALL = {'Walking': 0, 'Laying': 5, 'Jogging': 6, 'Hopping': 7, 'Falling': 8}
 
 
 def load_X(X_signals_paths):
@@ -157,6 +151,35 @@ def reduceSample(X_train, y_train, X_test, y_test):
     return XTrainReduced, yTrainReduced, XTestReduced, yTestReduced
 
 
+def loadNmerge(X_df, Y_df, path, label, checkpoint):
+    # Funzione che carica i dati contenuti nei file del dataset UMAFALL ne carica i dati selezionando solo le feature utili
+    # e li concatena nel dataset finale di UMAFALL
+
+    df = pd.read_csv(umafallPath + path, header=None, names=columnsUMAFALL, sep=';')
+
+    # ho preso solo le misurazioni dell'accelerometro e della posizione che mi interessa
+    df = df.loc[(df['Sensor Type'] == 0) & (df['Sensor ID'] == 0)]
+
+    finalDf = pd.DataFrame(columns=finalColumns)
+
+    finalDf[x] = df['X - Axis']
+    finalDf[y] = df['Y - Axis']
+    finalDf[z] = df['Z - Axis']
+    finalDf[mag] = np.sqrt((finalDf[x] ** 2) + (finalDf[y] ** 2) + (finalDf[z] ** 2))
+
+    X_df = pd.concat([X_df, finalDf])
+    X_df = X_df.reset_index(drop=True)
+
+    length = len(X_df)
+
+    for i in range(checkpoint, length):
+        Y_df.append(labelDictUMAFALL[label])
+
+    checkpoint = length
+
+    return X_df, Y_df, checkpoint
+
+
 def loadUCIHAR():
     # copia ed elaborazione dei dati contenuti nell'UCIHAR
     # UCI HAR Dataset caricato correttamente con il nome di ogni feature
@@ -170,27 +193,47 @@ def loadUCIHAR():
     X_df[x] = X[xUCI]
     X_df[y] = X[yUCI]
     X_df[z] = X[zUCI]
-
     X_df[mag] = np.sqrt((X[xUCI] ** 2) + (X[yUCI] ** 2) + (X[zUCI] ** 2))
 
+    Y_df = Y['action'].copy()
+    Y_df = Y_df.tolist()
+
     X_df = X_df.reset_index(drop=True)
-    Y_df = Y.reset_index(drop=True)
 
     return X_df, Y_df
 
 
 def loadUMAFall():
     # carica i dati contenuti nei vari file del dataset (e' stata fatta una selezione dei file) e dovrebbe restituire due
-    #% Accelerometer = 0 sensor type da utilizzare
-    columns = ['TimeStamp', 'Sample No', 'X - Axis', 'Y - Axis', 'Z - Axis', 'Sensor Type', 'Sensor ID']
+    # % Accelerometer = 0 sensor type da utilizzare
 
+    selectedFeatures = ['X - Axis', 'Y - Axis', 'Z - Axis', 'magnitude']
     X_df = pd.DataFrame(columns=finalColumns)
+    Y_df = []
 
-    walking = pd.read_csv(umafallPath + '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv', header=None, names=columns)
+    # caricato il dataset levando ; che univa tutte le colonne
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv',
+                                        'Walking', 0)
 
-    print(walking)
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_ADL_Hopping_1_2016-06-13_20-37-40.csv',
+                                        'Hopping', checkpoint)
 
-    #
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_ADL_Jogging_1_2016-06-13_20-40-29.csv',
+                                        'Jogging', checkpoint)
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df,
+                                        '/UMAFall_Subject_02_ADL_LyingDown_OnABed_1_2016-06-13_20-32-16.csv',
+                                        'Laying', checkpoint)
+
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_backwardFall_1_2016-06-13_20-51-32.csv',
+                                        'Falling', checkpoint)
+
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_forwardFall_1_2016-06-13_20-43-52.csv',
+                                        'Falling', checkpoint)
+
+    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_lateralFall_1_2016-06-13_20-49-17.csv',
+                                        'Falling', checkpoint)
+
+    return X_df, Y_df
 
 
 def loadWISDM():
@@ -235,59 +278,48 @@ def loadData():
     XDataUCI, yDataUCI = loadUCIHAR()
 
     # carico UMAFall
-    X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
+    XDataUMAFall, yDataUMAFall = loadUMAFall()
 
     # carico WISDM
-    # restituisce lo stesso numero di elementi in entrambe le parti
-    yDataWISDM, XdataWISDM = loadWISDM()
+    XdataWISDM, yDataWISDM = loadWISDM()
 
     # unione dei tre dataset
 
     flag = 0
 
     if (flag == 0):
-        X_train = np.concatenate((X_trainUCIArray, X_trainWISDMArray))
-        y_train = np.concatenate((y_trainUCIArray, y_trainWISDMArray))
+        X_df = np.concatenate((XDataUCI, XdataWISDM))
+        y_df = np.concatenate((yDataUCI, yDataWISDM))
 
-        X_test = np.concatenate((X_testUCIArray, X_testWISDMArray))
-        y_test = np.concatenate((y_testUCIArray, y_testWISDMArray))
-
-        X_val = X_trainUMAFallArray
-        y_val = y_trainUMAFallArray
+        X_val = XDataUMAFall
+        y_val = yDataUMAFall
 
     elif (flag == 1):
-        X_train = np.concatenate((X_trainWISDMArray, X_trainUMAFallArray))
-        y_train = np.concatenate((y_trainWISDMArray, y_trainUMAFallArray))
+        X_df = np.concatenate((XdataWISDM, XDataUMAFall))
+        y_df = np.concatenate((yDataWISDM, yDataUMAFall))
 
-        X_test = np.concatenate((X_testWISDMArray, X_testUMAFallArray))
-        y_test = np.concatenate((y_testWISDMArray, y_testUMAFallArray))
-
-        X_val = X_trainUCIArray
-        y_val = y_trainUCIArray
+        X_val = XDataUCI
+        y_val = yDataUCI
 
     elif (flag == 2):
-        X_train = np.concatenate((X_trainUCIArray, X_trainUMAFallArray))
-        y_train = np.concatenate((y_trainUCIArray, y_trainUMAFallArray))
+        X_df = np.concatenate((XDataUCI, XDataUMAFall))
+        y_df = np.concatenate((yDataUCI, yDataUMAFall))
 
-        X_test = np.concatenate((X_testUCIArray, X_testUMAFallArray))
-        y_test = np.concatenate((y_testUCIArray, y_testUMAFallArray))
+        X_val = XdataWISDM
+        y_val = yDataWISDM
 
-        X_val = X_trainWISDMArray
-        y_val = y_trainWISDMArray
-
-    return X_train, y_train, X_test, y_test, X_val, y_val
+    return X_df, y_df, X_val, y_val
 
 
 if __name__ == '__main__':
-    # X_train, y_train, X_test, y_test = loadData()
 
-    # X_trainUMAFallArray, y_trainUMAFallArray, X_testUMAFallArray, y_testUMAFallArray = loadUMAFall()
+    #caricamento e concatenazione dei vari dataset eseguita con successo
+    XData, YData, x_val, y_val = loadData()
 
-    # restituisce lo stesso numero di elementi in entrambe le parti
-    # y_label, XtrainWISDM = loadWISDM()
-
-    # print(y_label, XtrainWISDM)
-    # print(len(y_label))
-
-    # x, y = loadWISDM()
-    loadUMAFall()
+    print(XData)
+    print('\n')
+    print(YData)
+    print('\n')
+    print(x_val)
+    print('\n')
+    print(y_val)
