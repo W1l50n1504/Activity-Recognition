@@ -268,7 +268,7 @@ def loadWISDM():
     return X_df.copy(), y_labelConverted
 
 
-def loadData():
+def loadData(flag):
     # obiettivi, caricare i tre dataset,downsampling di ucihar da 50Hz a 20Hz, rimappare la label
     # per unificarle e avere tutte le attivita' in sincrono
 
@@ -284,8 +284,6 @@ def loadData():
     XdataWISDM, yDataWISDM = loadWISDM()
 
     # unione dei tre dataset
-
-    flag = 0
 
     if (flag == 0):
         X_df = np.concatenate((XDataUCI, XdataWISDM))
@@ -312,9 +310,8 @@ def loadData():
 
 
 if __name__ == '__main__':
-
-    #caricamento e concatenazione dei vari dataset eseguita con successo
-    XData, YData, x_val, y_val = loadData()
+    # caricamento e concatenazione dei vari dataset eseguita con successo, inserire 0,1 o 2 come argument di loadData per otterenere una diversa combinazione di dataset
+    XData, YData, x_val, y_val = loadData(0)
 
     print(XData)
     print('\n')
