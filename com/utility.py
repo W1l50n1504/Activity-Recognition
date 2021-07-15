@@ -1,15 +1,13 @@
 import matplotlib.pyplot as plt
-
 import numpy as np
-
+import os
 import pandas as pd
-
 import seaborn as sns
 
 from sklearn.utils import resample
 
-# absPath_ = os.getcwd()
-absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
+absPath_ = os.getcwd()
+# absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
 
 # etichetta dataset
 activity = ['Activity']
@@ -44,7 +42,7 @@ magWISDM = 'magnitude'
 
 # UMAFALL dataset path, con etichette dei dataset
 
-X_trainUMAFall = absPath_ + '/dataset/UMAFall_Dataset'
+umafallPath = absPath_ + '/dataset/UMAFall_Dataset'
 
 # etichette per i dataset che carico
 
@@ -182,12 +180,17 @@ def loadUCIHAR():
 
 
 def loadUMAFall():
-    # carica i dati contenuti nei vari file del dataset (e' stata fatta una selezione dei file) e dovrebbe restituire due dataset
+    # carica i dati contenuti nei vari file del dataset (e' stata fatta una selezione dei file) e dovrebbe restituire due
+    #% Accelerometer = 0 sensor type da utilizzare
     columns = ['TimeStamp', 'Sample No', 'X - Axis', 'Y - Axis', 'Z - Axis', 'Sensor Type', 'Sensor ID']
 
     X_df = pd.DataFrame(columns=finalColumns)
 
-    return X_df, Y_df
+    walking = pd.read_csv(umafallPath + '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv', header=None, names=columns)
+
+    print(walking)
+
+    #
 
 
 def loadWISDM():
@@ -286,6 +289,5 @@ if __name__ == '__main__':
     # print(y_label, XtrainWISDM)
     # print(len(y_label))
 
-    x, y = loadWISDM()
-
-    print(x)
+    # x, y = loadWISDM()
+    loadUMAFall()
