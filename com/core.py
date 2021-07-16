@@ -31,7 +31,7 @@ class BaseModel(metaclass=ABCMeta):
 
     def loadData(self):
         """:cvar"""
-        self.X_train, self.y_train, self.X_test, self.y_test, self.X_val, self.y_val = loadData()
+        self.X, self.y = loadData(0)
 
     @abstractmethod
     def dataProcessing(self):

@@ -2,12 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
+import random
 import seaborn as sns
+# import torch
 
 from sklearn.utils import resample
 
-absPath_ = os.getcwd()
-# absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
+# absPath_ = os.getcwd()
+absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
 
 # etichetta dataset
 activity = ['Activity']
@@ -167,7 +169,7 @@ def reduceSample(Xdf, yDf):
 
     finalY['Activity'] = reduce['label']
 
-    return finalX, finalY
+    return finalX.copy(), finalY.copy()
 
 
 def loadNmerge(X_df, Y_df, path, label, checkpoint):
@@ -215,13 +217,12 @@ def loadUCIHAR():
     X_df[mag] = np.sqrt((X[xUCI] ** 2) + (X[yUCI] ** 2) + (X[zUCI] ** 2))
 
     Y_df['Activity'] = Y['action']
-    # Y_df = Y_df.tolist()
 
     X_df = X_df.reset_index(drop=True)
     Y_df = Y_df.reset_index(drop=True)
-    # X_df, Y_df = reduceSample(X_df, Y_df)
+    X_df, Y_df = reduceSample(X_df, Y_df)
 
-    return X_df, Y_df
+    return X_df.copy(), Y_df.copy()
 
 
 def loadUMAFall():
@@ -230,31 +231,33 @@ def loadUMAFall():
 
     selectedFeatures = ['X - Axis', 'Y - Axis', 'Z - Axis', 'magnitude']
     X_df = pd.DataFrame(columns=finalColumns)
-    Y_df = []
+    Y_df = pd.DataFrame(columns=activity)
 
     # caricato il dataset levando ; che univa tutte le colonne
-    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv',
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv',
                                         'Walking', 0)
 
-    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_ADL_Hopping_1_2016-06-13_20-37-40.csv',
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_ADL_Hopping_1_2016-06-13_20-37-40.csv',
                                         'Hopping', checkpoint)
 
-    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_ADL_Jogging_1_2016-06-13_20-40-29.csv',
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_ADL_Jogging_1_2016-06-13_20-40-29.csv',
                                         'Jogging', checkpoint)
-    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df,
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df,
                                         '/UMAFall_Subject_02_ADL_LyingDown_OnABed_1_2016-06-13_20-32-16.csv',
                                         'Laying', checkpoint)
 
-    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_backwardFall_1_2016-06-13_20-51-32.csv',
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_backwardFall_1_2016-06-13_20-51-32.csv',
                                         'Falling', checkpoint)
 
-    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_forwardFall_1_2016-06-13_20-43-52.csv',
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_forwardFall_1_2016-06-13_20-43-52.csv',
                                         'Falling', checkpoint)
 
-    X_df, Y_df, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_lateralFall_1_2016-06-13_20-49-17.csv',
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_lateralFall_1_2016-06-13_20-49-17.csv',
                                         'Falling', checkpoint)
 
-    return X_df, Y_df
+
+
+    return X_df.copy(), Y_df.copy()
 
 
 def loadWISDM():
@@ -262,20 +265,12 @@ def loadWISDM():
     # estrae le misurazioni lungo i tre assi e ne calcola la magnitude il tutto all'interno di due
     # dataset
     # restituisce un dataset e una lista
-
-    y_labelConverted = []
     columns = ['user', 'activity', 'timestamp', 'x-accel', 'y-accel', 'z-accel']
-    df = pd.read_csv(wisdmPath, header=None, names=columns)
-
-    # estrazione delle etichette delle attivita' presenti nel dataset e conversione utilizzando il dizionario
-    y_label = df['activity'].copy()
-    y_labelList = y_label.tolist()
-
-    # traduzione delle etichette testuali in numeri int
-    for i in range(0, len(y_labelList)):
-        y_labelConverted.append(labelDictWISDM[y_labelList[i]])
 
     X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
+    Y_df = pd.DataFrame(columns=activity, dtype='int32')
+
+    df = pd.read_csv(wisdmPath, header=None, names=columns)
 
     X_df[xWISDM] = df[xWISDM]
     X_df[yWISDM] = df[yWISDM]
@@ -286,7 +281,17 @@ def loadWISDM():
     # calcolo della magnitudine
     X_df[magWISDM] = np.sqrt((X_df[xWISDM] ** 2) + (X_df[yWISDM] ** 2) + (X_df[zWISDM] ** 2))
 
-    return X_df.copy(), y_labelConverted
+    # rimpiazza le stringhe che indicano le attivita' con dei valori numerici
+    df = df.replace('Walking', labelDictWISDM['Walking'], regex=True)
+    df = df.replace('Upstairs', labelDictWISDM['Upstairs'], regex=True)
+    df = df.replace('Downstairs', labelDictWISDM['Downstairs'], regex=True)
+    df = df.replace('Sitting', labelDictWISDM['Sitting'], regex=True)
+    df = df.replace('Standing', labelDictWISDM['Standing'], regex=True)
+    df = df.replace('Jogging', labelDictWISDM['Jogging'], regex=True)
+
+    Y_df = df['activity'].copy()
+
+    return X_df.copy(), Y_df.copy()
 
 
 def loadData(flag):
@@ -306,32 +311,12 @@ def loadData(flag):
 
     # unione dei tre dataset
 
-    if (flag == 0):
-        X_df = pd.concat([XDataUCI, XdataWISDM])
-        X_df = X_df.reset_index(drop=True)
+    X_df = pd.concat([XDataUCI, XdataWISDM, XDataUMAFall])
+    X_df = X_df.reset_index(drop=True)
 
-        y_df = np.concatenate((yDataUCI, yDataWISDM))
-
-        X_val = XDataUMAFall
-        y_val = yDataUMAFall
-
-    elif (flag == 1):
-        X_df = pd.concat([XdataWISDM, XDataUMAFall])
-        X_df = X_df.reset_index(drop=True)
-
-        y_df = np.concatenate((yDataWISDM, yDataUMAFall))
-
-        X_val = XDataUCI
-        y_val = yDataUCI
-
-    elif (flag == 2):
-        X_df = pd.concat([XDataUCI, XDataUMAFall])
-        X_df = X_df.reset_index(drop=True)
-
-        y_df = np.concatenate((yDataUCI, yDataUMAFall))
-
-        X_val = XdataWISDM
-        y_val = yDataWISDM
+    # TODO controlla quale e' una lista
+    y_df = pd.concat([yDataUCI, yDataWISDM, yDataUMAFall])
+    y_df = y_df.reset_index(drop=True)
 
     return X_df, y_df, X_val, y_val
 
@@ -347,5 +332,4 @@ if __name__ == '__main__':
     # print(x_val)
     # print('\n')
     # print(len(y_val))
-    X, Y = loadUCIHAR()
-    X, Y = reduceSample(X, Y)
+    X, Y = loadWISDM()
