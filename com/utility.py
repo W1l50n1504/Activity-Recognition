@@ -145,10 +145,29 @@ def get_human_dataset():
 
 def reduceSample(Xdf, yDf):
     # riduce la frequenza dei campioni da 50 Hz a 20Hz, da utilizzare con UCIHAR
-    Xdf = resample(Xdf, replace=True, n_samples=int((len(Xdf) * 20) / 50))
-    yDf = resample(yDf, replace=True, n_samples=int((len(yDf) * 20) / 50))
+    reduce = pd.DataFrame(columns=[x, y, z, mag, 'label'])
 
-    return Xdf, yDf
+    reduce[x] = Xdf[x]
+    reduce[y] = Xdf[y]
+    reduce[z] = Xdf[z]
+    reduce[mag] = Xdf[mag]
+
+    reduce['label'] = yDf['Activity']
+
+    reduce = resample(reduce, replace=True, n_samples=int((len(reduce) * 20 / 50)), random_state=0)
+    reduce = reduce.reset_index(drop=True)
+
+    finalX = pd.DataFrame(columns=[x, y, z, mag])
+    finalY = pd.DataFrame(columns=['Activity'])
+
+    finalX[x] = reduce[x]
+    finalX[y] = reduce[y]
+    finalX[z] = reduce[z]
+    finalX[mag] = reduce[mag]
+
+    finalY['Activity'] = reduce['label']
+
+    return finalX, finalY
 
 
 def loadNmerge(X_df, Y_df, path, label, checkpoint):
@@ -195,11 +214,12 @@ def loadUCIHAR():
     X_df[z] = X[zUCI]
     X_df[mag] = np.sqrt((X[xUCI] ** 2) + (X[yUCI] ** 2) + (X[zUCI] ** 2))
 
-    Y_df = Y['action'].copy()
-    Y_df = Y_df.tolist()
+    Y_df['Activity'] = Y['action']
+    # Y_df = Y_df.tolist()
 
     X_df = X_df.reset_index(drop=True)
-    X_df, Y_df = reduceSample(X_df, Y_df)
+    Y_df = Y_df.reset_index(drop=True)
+    # X_df, Y_df = reduceSample(X_df, Y_df)
 
     return X_df, Y_df
 
@@ -318,12 +338,14 @@ def loadData(flag):
 
 if __name__ == '__main__':
     # caricamento e concatenazione dei vari dataset eseguita con successo, inserire 0,1 o 2 come argument di loadData per otterenere una diversa combinazione di dataset
-    XData, YData, x_val, y_val = loadData(0)
+    # XData, YData, x_val, y_val = loadData(0)
 
-    print(XData)
-    print('\n')
-    print(len(YData))
-    print('\n')
-    print(x_val)
-    print('\n')
-    print(len(y_val))
+    # print(XData)
+    # print('\n')
+    # print(len(YData))
+    # print('\n')
+    # print(x_val)
+    # print('\n')
+    # print(len(y_val))
+    X, Y = loadUCIHAR()
+    X, Y = reduceSample(X, Y)
