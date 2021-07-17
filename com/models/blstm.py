@@ -17,18 +17,6 @@ for device in gpu_devices:
 class BLSTM(BaseModel, ABC):
     def __init__(self):
         super().__init__()
-        self.epochs = 10
-
-    def loadData(self):
-        print('caricamento dei dati di training e test')
-
-        self.X_train = load_X(xTrainPathUCI)
-        self.X_test = load_X(xTestPathUCI)
-
-        self.y_train = load_y(yTrainPathUCI)
-        self.y_test = load_y(yTestPathUCI)
-
-        print('fine caricamento')
 
     def dataProcessing(self):
         print('elaborazione dei dati...')

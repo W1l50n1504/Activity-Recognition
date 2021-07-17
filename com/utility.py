@@ -4,7 +4,7 @@ import os
 import pandas as pd
 import random
 import seaborn as sns
-# import torch
+import torch
 
 from sklearn.utils import resample
 
@@ -326,6 +326,8 @@ def loadData():
     y_df = pd.concat([yDataUCI, yDataWISDM, yDataUMAFall])
     y_df = y_df.reset_index(drop=True)
 
+    X_df = torch.tensor(X_df.values)
+
     return X_df, y_df
 
 
@@ -339,6 +341,8 @@ def loadSavedData():
     print('Caricamento dati da DataProcessed...')
     x = pd.read_csv(xPath)
     y = pd.read_csv(yPath)
+
+    x = torch.tensor(x.values)
 
     return x, y
 
@@ -358,5 +362,9 @@ if __name__ == '__main__':
     # saveData(X, Y)
 
     x, y = loadSavedData()
+    # creating tensor from targets_df
 
-    print(x, y)
+
+    # printing out result
+    print(torch_tensor)
+    #print(x, y)
