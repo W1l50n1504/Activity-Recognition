@@ -17,6 +17,10 @@ from com.utility import *
 class BaseModel(metaclass=ABCMeta):
 
     def __init__(self):
+
+        self.X = None
+        self.y = None
+
         self.checkpoint = None
         self.y_train = None
         self.y_test = None
@@ -31,7 +35,7 @@ class BaseModel(metaclass=ABCMeta):
 
     def loadData(self):
         """:cvar"""
-        self.X, self.y = loadData(0)
+        self.X, self.y = loadData()
 
     @abstractmethod
     def dataProcessing(self):

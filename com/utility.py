@@ -228,34 +228,38 @@ def loadUCIHAR():
 def loadUMAFall():
     # carica i dati contenuti nei vari file del dataset (e' stata fatta una selezione dei file) e dovrebbe restituire due
     # % Accelerometer = 0 sensor type da utilizzare
+    Y_label = []
+    checkpoint = 0
 
     selectedFeatures = ['X - Axis', 'Y - Axis', 'Z - Axis', 'magnitude']
     X_df = pd.DataFrame(columns=finalColumns)
-    Y_df = pd.DataFrame(columns=activity)
 
     # caricato il dataset levando ; che univa tutte le colonne
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv',
-                                        'Walking', 0)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv',
+                                           'Walking', checkpoint)
 
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_ADL_Hopping_1_2016-06-13_20-37-40.csv',
-                                        'Hopping', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, '/UMAFall_Subject_02_ADL_Hopping_1_2016-06-13_20-37-40.csv',
+                                           'Hopping', checkpoint)
 
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_ADL_Jogging_1_2016-06-13_20-40-29.csv',
-                                        'Jogging', checkpoint)
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df,
-                                        '/UMAFall_Subject_02_ADL_LyingDown_OnABed_1_2016-06-13_20-32-16.csv',
-                                        'Laying', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, '/UMAFall_Subject_02_ADL_Jogging_1_2016-06-13_20-40-29.csv',
+                                           'Jogging', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
+                                           '/UMAFall_Subject_02_ADL_LyingDown_OnABed_1_2016-06-13_20-32-16.csv',
+                                           'Laying', checkpoint)
 
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_backwardFall_1_2016-06-13_20-51-32.csv',
-                                        'Falling', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
+                                           '/UMAFall_Subject_02_Fall_backwardFall_1_2016-06-13_20-51-32.csv',
+                                           'Falling', checkpoint)
 
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_forwardFall_1_2016-06-13_20-43-52.csv',
-                                        'Falling', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
+                                           '/UMAFall_Subject_02_Fall_forwardFall_1_2016-06-13_20-43-52.csv',
+                                           'Falling', checkpoint)
 
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_df, '/UMAFall_Subject_02_Fall_lateralFall_1_2016-06-13_20-49-17.csv',
-                                        'Falling', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
+                                           '/UMAFall_Subject_02_Fall_lateralFall_1_2016-06-13_20-49-17.csv',
+                                           'Falling', checkpoint)
 
-
+    Y_df = pd.DataFrame(Y_label, columns=activity)
 
     return X_df.copy(), Y_df.copy()
 
@@ -294,7 +298,7 @@ def loadWISDM():
     return X_df.copy(), Y_df.copy()
 
 
-def loadData(flag):
+def loadData():
     # obiettivi, caricare i tre dataset,downsampling di ucihar da 50Hz a 20Hz, rimappare la label
     # per unificarle e avere tutte le attivita' in sincrono
 
@@ -314,11 +318,10 @@ def loadData(flag):
     X_df = pd.concat([XDataUCI, XdataWISDM, XDataUMAFall])
     X_df = X_df.reset_index(drop=True)
 
-    # TODO controlla quale e' una lista
     y_df = pd.concat([yDataUCI, yDataWISDM, yDataUMAFall])
     y_df = y_df.reset_index(drop=True)
 
-    return X_df, y_df, X_val, y_val
+    return X_df, y_df
 
 
 if __name__ == '__main__':
@@ -332,4 +335,4 @@ if __name__ == '__main__':
     # print(x_val)
     # print('\n')
     # print(len(y_val))
-    X, Y = loadWISDM()
+    X, Y = loadUMAFall()
