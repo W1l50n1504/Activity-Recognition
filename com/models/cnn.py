@@ -19,27 +19,29 @@ class CNN(BaseModel, ABC):
         self.epochs = 10
 
     def dataProcessing(self):
-        print('elaborazione dei dati...')
-
-        self.y = np.array(self.y)
-        self.X = np.array(self.X)
+        print('Elaborazione dei dati...')
 
         enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
         enc = enc.fit(self.y)
 
         self.y = enc.transform(self.y)
 
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3,
+                                                                                random_state=42)
 
-        print('dimensione reshape', self.X[..., np.newaxis].shape)
+        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1,
+                                                                              random_state=42)
 
+        #print('train\n', self.X_train, '\n', self.y_train)
+        #print('\ntest\n', self.X_test, '\n', self.y_test)
+        #print('\nval\n', self.X_val, '\n', self.y_val)
 
-
-        print('fine elaborazione dati')
+        print('Fine elaborazione dati.')
 
     def modelCreation(self):
         print('Creazione Modello...')
         self.model = Sequential()
-        self.model.add(Conv2D(64, 1, activation='relu', input_shape=self.X_train[0].shape))
+        self.model.add(Conv2D(64, 1, activation='relu', input_shape=self.X_train.shape))
         self.model.add(Dropout(0.1))
 
         self.model.add(Conv2D(128, 1, activation='relu', padding='valid'))
@@ -55,17 +57,20 @@ class CNN(BaseModel, ABC):
         self.model.compile(optimizer=Adam(learning_rate=0.001), loss='mse',
                            metrics=['accuracy', tf.keras.metrics.AUC()])
 
-        print('Fine creazione')
+        print('Fine creazione.')
 
     def fit(self):
+        print('Inizio fitting del modello...')
         self.checkpoint = ModelCheckpoint(checkPointPathCNN + '/best_model.hdf5',
                                           monitor='val_accuracy', verbose=1, save_best_only=True, mode='auto', period=1)
 
         self.history = self.model.fit(self.X_train, self.y_train, batch_size=64, epochs=self.epochs,
                                       validation_data=(self.X_val, self.y_val),
                                       verbose=1, callbacks=[self.checkpoint])
+        print('Fine fitting.')
 
     def plot(self):
+        print('Inizio plotting delle metriche...')
         # plotting confusion matrix
         rounded_labels = np.argmax(self.y_test, axis=1)
         y_pred = self.model.predict_classes(self.X_test)
@@ -118,6 +123,7 @@ class CNN(BaseModel, ABC):
         plt.legend(['Train', 'Val'], loc='upper left')
         plt.savefig(modelLossCNN)
         # plt.show()
+        print('Fine plotting.')
 
 
 if __name__ == '__main__':

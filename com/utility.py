@@ -330,11 +330,13 @@ def loadData():
 
 
 def saveData(X, Y):
+    print('Salvataggio dati in DataProcessed...')
     X.to_csv(xPath, index=False)
     Y.to_csv(yPath, index=False)
 
 
 def loadSavedData():
+    print('Caricamento dati da DataProcessed...')
     x = pd.read_csv(xPath)
     y = pd.read_csv(yPath)
 

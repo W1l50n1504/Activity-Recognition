@@ -13,6 +13,7 @@ from mlxtend.plotting import plot_confusion_matrix
 
 from com.utility import *
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 
 class BaseModel(metaclass=ABCMeta):
 
@@ -21,6 +22,7 @@ class BaseModel(metaclass=ABCMeta):
         self.X = None
         self.y = None
 
+        self.model = None
         self.checkpoint = None
         self.y_train = None
         self.y_test = None
@@ -30,7 +32,7 @@ class BaseModel(metaclass=ABCMeta):
         self.X_test = None
         self.X_val = None
         self.history = None
-        self.loadData()
+        self.loadData(0)
         self.dataProcessing()
 
     def loadData(self, flag):
