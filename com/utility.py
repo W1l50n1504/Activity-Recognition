@@ -11,6 +11,10 @@ from sklearn.utils import resample
 # absPath_ = os.getcwd()
 absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
 
+# percorso che contiene tutti i dati precaricati, in modo da evitare di dover ricalcolarli tutti ogni volta
+xPath = 'C:/Users\david\PycharmProjects\ActivityRecognition683127\com\dataset\DataProcessed/xData.csv'
+yPath = 'C:/Users\david\PycharmProjects\ActivityRecognition683127\com\dataset\DataProcessed/yData.csv'
+
 # etichetta dataset
 activity = ['Activity']
 
@@ -232,7 +236,7 @@ def loadUMAFall():
     checkpoint = 0
 
     selectedFeatures = ['X - Axis', 'Y - Axis', 'Z - Axis', 'magnitude']
-    X_df = pd.DataFrame(columns=finalColumns)
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
 
     # caricato il dataset levando ; che univa tutte le colonne
     X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv',
@@ -259,7 +263,7 @@ def loadUMAFall():
                                            '/UMAFall_Subject_02_Fall_lateralFall_1_2016-06-13_20-49-17.csv',
                                            'Falling', checkpoint)
 
-    Y_df = pd.DataFrame(Y_label, columns=activity)
+    Y_df = pd.DataFrame(Y_label, columns=activity, dtype='int64')
 
     return X_df.copy(), Y_df.copy()
 
@@ -272,7 +276,7 @@ def loadWISDM():
     columns = ['user', 'activity', 'timestamp', 'x-accel', 'y-accel', 'z-accel']
 
     X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
-    Y_df = pd.DataFrame(columns=activity, dtype='int32')
+    Y_df = pd.DataFrame(columns=activity, dtype='int64')
 
     df = pd.read_csv(wisdmPath, header=None, names=columns)
 
@@ -293,7 +297,8 @@ def loadWISDM():
     df = df.replace('Standing', labelDictWISDM['Standing'], regex=True)
     df = df.replace('Jogging', labelDictWISDM['Jogging'], regex=True)
 
-    Y_df = df['activity'].copy()
+    Y_df['Activity'] = df['activity']
+    Y_df = Y_df.astype('int64')
 
     return X_df.copy(), Y_df.copy()
 
@@ -324,6 +329,18 @@ def loadData():
     return X_df, y_df
 
 
+def saveData(X, Y):
+    X.to_csv(xPath, index=False)
+    Y.to_csv(yPath, index=False)
+
+
+def loadSavedData():
+    x = pd.read_csv(xPath)
+    y = pd.read_csv(yPath)
+
+    return x, y
+
+
 if __name__ == '__main__':
     # caricamento e concatenazione dei vari dataset eseguita con successo, inserire 0,1 o 2 come argument di loadData per otterenere una diversa combinazione di dataset
     # XData, YData, x_val, y_val = loadData(0)
@@ -335,4 +352,9 @@ if __name__ == '__main__':
     # print(x_val)
     # print('\n')
     # print(len(y_val))
-    X, Y = loadUMAFall()
+    # X, Y = loadData()
+    # saveData(X, Y)
+
+    x, y = loadSavedData()
+
+    print(x, y)

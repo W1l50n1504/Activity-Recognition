@@ -21,18 +21,18 @@ class CNN(BaseModel, ABC):
     def dataProcessing(self):
         print('elaborazione dei dati...')
 
+        self.y = np.array(self.y)
+        self.X = np.array(self.X)
+
         enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-        enc = enc.fit(self.y_train)
+        enc = enc.fit(self.y)
 
-        self.y_train = enc.transform(self.y_train)
-        self.y_test = enc.transform(self.y_test)
-        self.y_val = enc.transform(self.y_val)
+        self.y = enc.transform(self.y)
 
-        # print('dimensione reshape', X_val[..., np.newaxis].shape)
 
-        self.X_train = self.X_train.reshape(6488, 561, 1, 1)
-        self.X_test = self.X_test.reshape(3090, 561, 1, 1)
-        self.X_val = self.X_val.reshape(721, 561, 1, 1)
+        print('dimensione reshape', self.X[..., np.newaxis].shape)
+
+
 
         print('fine elaborazione dati')
 

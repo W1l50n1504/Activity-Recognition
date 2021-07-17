@@ -33,10 +33,12 @@ class BaseModel(metaclass=ABCMeta):
         self.loadData()
         self.dataProcessing()
 
-    def loadData(self):
+    def loadData(self, flag):
         """:cvar"""
-        self.X, self.y = loadData()
-
+        if(flag):
+            self.X, self.y = loadData()
+        else:
+            self.X, self.y = loadSavedData()
     @abstractmethod
     def dataProcessing(self):
         """
