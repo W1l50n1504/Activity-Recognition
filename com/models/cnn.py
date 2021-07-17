@@ -31,9 +31,9 @@ class CNN(BaseModel, ABC):
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1,
                                                                               random_state=42)
 
-        #self.X_train = tf.convert_to_tensor(self.X_train, dtype=tf.float32)
-        #self.X_test = tf.convert_to_tensor(self.X_test, dtype=tf.float32)
-        #self.X_val = tf.convert_to_tensor(self.X_val, dtype=tf.float32)
+        # self.X_train = tf.convert_to_tensor(self.X_train, dtype=tf.float32)
+        # self.X_test = tf.convert_to_tensor(self.X_test, dtype=tf.float32)
+        # self.X_val = tf.convert_to_tensor(self.X_val, dtype=tf.float32)
 
         print('train\n', self.X_train.shape, '\n', self.y_train.shape)
         print('\ntest\n', self.X_test.shape, '\n', self.y_test.shape)
