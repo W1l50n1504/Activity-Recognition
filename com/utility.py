@@ -9,8 +9,8 @@ import torch
 from sklearn.utils import resample
 
 # absPath_ = os.getcwd()
-# absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
-absPath_ = '/home/w1l50n/PycharmProjects/ActivityRecognition683127-main/com'
+absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
+# absPath_ = '/home/w1l50n/PycharmProjects/ActivityRecognition683127-main/com'
 # percorso che contiene tutti i dati precaricati, in modo da evitare di dover ricalcolarli tutti ogni volta
 xPath = absPath_ + '/dataset/DataProcessed/xData.csv'
 yPath = absPath_ + '/dataset/DataProcessed/yData.csv'
@@ -361,11 +361,13 @@ if __name__ == '__main__':
     # X, Y = loadData()
     # saveData(X, Y)
 
-    x, y = loadData()
+    x1, y1 = loadSavedData()
+    x2, y2 = loadUCIHAR()
 
-    saveData(x, y)
+    x1, y1 = np.array(x1), np.array(y1)
+    x2, y2 = np.array(x2), np.array(y2)
 
-"""    x = np.array(x)
-    y = np.array(y)
-    print(x[...,np.newaxis].shape)
-    x = x.reshape(x.shape[0], 128, 9, 1)"""
+    print('x1: ', x1.shape)
+    print('y1: ', y1.shape)
+    print('x2: ', x2.shape)
+    print('y2: ', y2.shape)
