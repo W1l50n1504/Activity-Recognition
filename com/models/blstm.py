@@ -21,11 +21,10 @@ class BLSTM(BaseModel, ABC):
     def dataProcessing(self):
         print('elaborazione dei dati...')
 
-        X = np.concatenate((self.X_train, self.X_test))
+        self.X = np.array(self.X)
+        self.y = np.array(self.y)
 
-        y = np.concatenate((self.y_train, self.y_test))
-
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3, random_state=42)
 
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1,
                                                                               random_state=42)
@@ -36,6 +35,11 @@ class BLSTM(BaseModel, ABC):
         self.y_train = enc.transform(self.y_train)
         self.y_test = enc.transform(self.y_test)
         self.y_val = enc.transform(self.y_val)
+
+        self.X_train = self.X_train.reshape(707582, 4, 1)
+        self.X_test = self.X_test.reshape(336945, 4, 1)
+        self.X_val = self.X_val.reshape(78621, 4, 1)
+
         print('fine elaborazione dati')
 
     def modelCreation(self):

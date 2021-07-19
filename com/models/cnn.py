@@ -20,29 +20,29 @@ class CNN(BaseModel, ABC):
 
         self.X = np.array(self.X)
         self.y = np.array(self.y)
-        # print('dimensione reshape', self.X[..., np.newaxis].shape)
-        self.X = self.X.reshape(1123148, 4, 1, 1)
-        enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-        enc = enc.fit(self.y)
 
-        self.y = enc.transform(self.y)
-
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3,
-                                                                                random_state=42)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3, random_state=42)
 
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1,
                                                                               random_state=42)
 
-        print('train\n', self.X_train.shape, '\n', self.y_train.shape)
-        print('\ntest\n', self.X_test.shape, '\n', self.y_test.shape)
-        print('\nval\n', self.X_val.shape, '\n', self.y_val.shape)
+        enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
+        enc = enc.fit(self.y_train)
+
+        self.y_train = enc.transform(self.y_train)
+        self.y_test = enc.transform(self.y_test)
+        self.y_val = enc.transform(self.y_val)
+
+        self.X_train = self.X_train.reshape(707582, 4, 1)
+        self.X_test = self.X_test.reshape(336945, 4, 1)
+        self.X_val = self.X_val.reshape(78621, 4, 1)
 
         print('Fine elaborazione dati.')
 
     def modelCreation(self):
         print('Creazione Modello...')
         self.model = Sequential()
-        self.model.add(Conv2D(64, 1, activation='relu', input_shape=self.X_train.shape[1:]))
+        self.model.add(Conv2D(64, 1, activation='relu', input_shape=self.X_train.shape))
         self.model.add(Dropout(0.1))
 
         self.model.add(Conv2D(128, 1, activation='relu', padding='valid'))
@@ -66,7 +66,7 @@ class CNN(BaseModel, ABC):
                                           monitor='val_accuracy', verbose=1, save_best_only=True, mode='auto', period=1)
 
         self.history = self.model.fit(self.X_train, self.y_train, batch_size=64, epochs=self.epochs,
-                                      steps_per_epoch=100,
+
                                       validation_data=(self.X_val, self.y_val),
                                       verbose=1, callbacks=[self.checkpoint])
         print('Fine fitting.')

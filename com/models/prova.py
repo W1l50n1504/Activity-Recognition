@@ -128,17 +128,21 @@ if __name__ == '__main__':
 
     print(X_train.shape, y_train.shape, X_test.shape, y_test.shape, X_val.shape, y_val.shape)
 
-    X_train = X_train.reshape(707582, 4, 1, 1)
-    X_test = X_test.reshape(336945, 4, 1, 1)
-    X_val = X_val.reshape(78621, 4, 1, 1)
+    X_train = X_train.reshape(707582, 4, 1)
+    X_test = X_test.reshape(336945, 4, 1)
+    X_val = X_val.reshape(78621, 4, 1)
 
-    print(X_train.shape, y_train.shape, X_test.shape, y_test.shape, X_val.shape, y_val.shape)
+
+    print(X_train[0].shape, y_train.shape, X_test.shape, y_test.shape, X_val.shape, y_val.shape)
 
     model = Sequential()
-    model.add(Conv2D(64, 1, activation='relu', input_shape=X_train[0].shape))
+    model.add(Conv2D(64, 1, activation='relu', input_shape=X_train.shape))
     model.add(Dropout(0.1))
 
     model.add(Conv2D(128, 1, activation='relu', padding='valid'))
+    model.add(MaxPool2D(1, 1))
+
+    model.add(Conv2D(256, 1, activation='relu', padding='valid'))
     model.add(MaxPool2D(1, 1))
 
     model.add(Dropout(0.5))
