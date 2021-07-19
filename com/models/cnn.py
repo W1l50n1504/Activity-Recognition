@@ -20,7 +20,7 @@ class CNN(BaseModel, ABC):
 
         self.X = np.array(self.X)
         self.y = np.array(self.y)
-        #print('dimensione reshape', self.X[..., np.newaxis].shape)
+        # print('dimensione reshape', self.X[..., np.newaxis].shape)
         self.X = self.X.reshape(1123148, 4, 1, 1)
         enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
         enc = enc.fit(self.y)
@@ -42,7 +42,7 @@ class CNN(BaseModel, ABC):
     def modelCreation(self):
         print('Creazione Modello...')
         self.model = Sequential()
-        self.model.add(Conv2D(64, 1, activation='relu', input_shape=self.X_train.shape))
+        self.model.add(Conv2D(64, 1, activation='relu', input_shape=self.X_train.shape[1:]))
         self.model.add(Dropout(0.1))
 
         self.model.add(Conv2D(128, 1, activation='relu', padding='valid'))
@@ -66,12 +66,13 @@ class CNN(BaseModel, ABC):
                                           monitor='val_accuracy', verbose=1, save_best_only=True, mode='auto', period=1)
 
         self.history = self.model.fit(self.X_train, self.y_train, batch_size=64, epochs=self.epochs,
+                                      steps_per_epoch=100,
                                       validation_data=(self.X_val, self.y_val),
                                       verbose=1, callbacks=[self.checkpoint])
         print('Fine fitting.')
 
     def fitWeb(self):
-        verbose, epochs, batch_size = 0, 10, 8
+        verbose, epochs, batch_size = 0, 10, 128
         n_timesteps, n_features, n_outputs = self.X_train.shape[0], self.X_train.shape[1], self.y_train.shape[0]
         self.model = Sequential()
         self.model.add(Conv1D(filters=64, kernel_size=4, activation='relu', input_shape=(n_timesteps, n_features)))
@@ -83,13 +84,12 @@ class CNN(BaseModel, ABC):
         self.model.add(Dense(n_outputs, activation='softmax'))
         self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         # fit network
-        self.model.fit(self.X_train, self.y_train, epochs=epochs, batch_size=batch_size, verbose=verbose)
+        self.model.fit(self.X_train, self.y_train, epochs=epochs, steps_per_epoch=100, batch_size=batch_size,
+                       verbose=verbose)
         # evaluate model
         _, accuracy = self.model.evaluate(self.X_test, self.y_test, batch_size=batch_size, verbose=0)
 
         print('accuracy: ', accuracy)
-
-
 
     def plot(self):
         print('Inizio plotting delle metriche...')
@@ -150,4 +150,6 @@ class CNN(BaseModel, ABC):
 
 if __name__ == '__main__':
     cnn = CNN()
-    cnn.fitWeb()
+    # cnn.fitWeb()
+    # cnn.plot()
+    cnn.main()

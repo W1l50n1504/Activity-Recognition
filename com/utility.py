@@ -212,7 +212,7 @@ def loadUCIHAR():
 
     X, Y = get_human_dataset()
 
-    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
     Y_df = pd.DataFrame(columns=activity, dtype='int32')
 
     X_df[x] = X[xUCI]
@@ -236,7 +236,7 @@ def loadUMAFall():
     checkpoint = 0
 
     selectedFeatures = ['X - Axis', 'Y - Axis', 'Z - Axis', 'magnitude']
-    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
 
     # caricato il dataset levando ; che univa tutte le colonne
     X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv',
@@ -263,7 +263,7 @@ def loadUMAFall():
                                            '/UMAFall_Subject_02_Fall_lateralFall_1_2016-06-13_20-49-17.csv',
                                            'Falling', checkpoint)
 
-    Y_df = pd.DataFrame(Y_label, columns=activity, dtype='int64')
+    Y_df = pd.DataFrame(Y_label, columns=activity, dtype='int32')
 
     return X_df.copy(), Y_df.copy()
 
@@ -275,8 +275,8 @@ def loadWISDM():
     # restituisce un dataset e una lista
     columns = ['user', 'activity', 'timestamp', 'x-accel', 'y-accel', 'z-accel']
 
-    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
-    Y_df = pd.DataFrame(columns=activity, dtype='int64')
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
+    Y_df = pd.DataFrame(columns=activity, dtype='int32')
 
     df = pd.read_csv(wisdmPath, header=None, names=columns)
 
@@ -361,9 +361,11 @@ if __name__ == '__main__':
     # X, Y = loadData()
     # saveData(X, Y)
 
-    x, y = loadSavedData()
+    x, y = loadData()
 
-    x = np.array(x)
+    saveData(x, y)
+
+"""    x = np.array(x)
     y = np.array(y)
     print(x[...,np.newaxis].shape)
-    x = x.reshape(x.shape[0], 128, 9, 1)
+    x = x.reshape(x.shape[0], 128, 9, 1)"""

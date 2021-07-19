@@ -9,12 +9,12 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from tensorflow.python.keras.layers import Bidirectional, LSTM, MaxPooling1D
 from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.layers import Conv2D, Conv1D, MaxPool2D, Flatten, Dense, Dropout, BatchNormalization
+from tensorflow.keras.layers import Conv2D, Conv1D, MaxPool1D, MaxPool2D, Flatten, Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
 
 from com.utility import *
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
+
 
 
 class BaseModel(metaclass=ABCMeta):
