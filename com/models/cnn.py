@@ -73,19 +73,23 @@ class CNN(BaseModel, ABC):
     def fitWeb(self):
         verbose, epochs, batch_size = 0, 10, 8
         n_timesteps, n_features, n_outputs = self.X_train.shape[0], self.X_train.shape[1], self.y_train.shape[0]
-        model = Sequential()
-        model.add(Conv1D(filters=64, kernel_size=4, activation='relu', input_shape=(n_timesteps, n_features)))
-        model.add(Conv1D(filters=64, kernel_size=4, activation='relu'))
-        model.add(Dropout(0.5))
-        model.add(MaxPooling1D(pool_size=2))
-        model.add(Flatten())
-        model.add(Dense(100, activation='relu'))
-        model.add(Dense(n_outputs, activation='softmax'))
-        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        self.model = Sequential()
+        self.model.add(Conv1D(filters=64, kernel_size=4, activation='relu', input_shape=(n_timesteps, n_features)))
+        self.model.add(Conv1D(filters=64, kernel_size=4, activation='relu'))
+        self.model.add(Dropout(0.5))
+        self.model.add(MaxPooling1D(pool_size=2))
+        self.model.add(Flatten())
+        self.model.add(Dense(100, activation='relu'))
+        self.model.add(Dense(n_outputs, activation='softmax'))
+        self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         # fit network
-        model.fit(self.X_train, self.y_train, epochs=epochs, batch_size=batch_size, verbose=verbose)
+        self.model.fit(self.X_train, self.y_train, epochs=epochs, batch_size=batch_size, verbose=verbose)
         # evaluate model
-        _, accuracy = model.evaluate(self.X_test, self.y_test, batch_size=batch_size, verbose=0)
+        _, accuracy = self.model.evaluate(self.X_test, self.y_test, batch_size=batch_size, verbose=0)
+
+        print('accuracy: ', accuracy)
+
+
 
     def plot(self):
         print('Inizio plotting delle metriche...')

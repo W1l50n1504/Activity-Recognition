@@ -12,8 +12,8 @@ from sklearn.utils import resample
 # absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
 absPath_ = '/home/w1l50n/PycharmProjects/ActivityRecognition683127-main/com'
 # percorso che contiene tutti i dati precaricati, in modo da evitare di dover ricalcolarli tutti ogni volta
-xPath = absPath_ + '\dataset\DataProcessed/xData.csv'
-yPath = absPath_ + '\dataset\DataProcessed/yData.csv'
+xPath = absPath_ + '/dataset/DataProcessed/xData.csv'
+yPath = absPath_ + '/dataset/DataProcessed/yData.csv'
 
 # etichetta dataset
 activity = ['Activity']
@@ -362,8 +362,8 @@ if __name__ == '__main__':
     # saveData(X, Y)
 
     x, y = loadSavedData()
-    # creating tensor from targets_df
 
-    # printing out result
-    print(torch_tensor)
-    # print(x, y)
+    x = np.array(x)
+    y = np.array(y)
+    print(x[...,np.newaxis].shape)
+    x = x.reshape(x.shape[0], 128, 9, 1)

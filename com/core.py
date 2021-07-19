@@ -3,7 +3,7 @@ import tensorflow as tf
 from abc import ABCMeta, abstractmethod, ABC
 from mlxtend.plotting import plot_confusion_matrix
 from sklearn.metrics import confusion_matrix
-from sklearn.metrics.classification import accuracy_score
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, standardscaler
 from tensorflow.python.keras.layers import Bidirectional, LSTM, MaxPooling1D
@@ -13,8 +13,6 @@ from tensorflow.keras.layers import Conv2D, Conv1D, MaxPool2D, Flatten, Dense, D
 from tensorflow.keras.optimizers import Adam
 
 from com.utility import *
-
-import tensorflow as tf
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 
