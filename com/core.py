@@ -3,9 +3,9 @@ import tensorflow as tf
 from abc import ABCMeta, abstractmethod, ABC
 from mlxtend.plotting import plot_confusion_matrix
 from sklearn.metrics import confusion_matrix
-from sklearn.metrics.classification import accuracy_score
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, standardscaler
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from tensorflow.python.keras.layers import Bidirectional, LSTM, MaxPooling1D
 from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import ModelCheckpoint
