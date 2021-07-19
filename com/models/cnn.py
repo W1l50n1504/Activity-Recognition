@@ -18,6 +18,10 @@ class CNN(BaseModel, ABC):
     def dataProcessing(self):
         print('Elaborazione dei dati...')
 
+        self.X = np.array(self.X)
+        self.y = np.array(self.y)
+        #print('dimensione reshape', self.X[..., np.newaxis].shape)
+        self.X = self.X.reshape(1123148, 4, 1, 1)
         enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
         enc = enc.fit(self.y)
 
@@ -67,11 +71,11 @@ class CNN(BaseModel, ABC):
         print('Fine fitting.')
 
     def fitWeb(self):
-        verbose, epochs, batch_size = 0, 10, 32
+        verbose, epochs, batch_size = 0, 10, 8
         n_timesteps, n_features, n_outputs = self.X_train.shape[0], self.X_train.shape[1], self.y_train.shape[0]
         model = Sequential()
-        model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(n_timesteps, n_features)))
-        model.add(Conv1D(filters=64, kernel_size=3, activation='relu'))
+        model.add(Conv1D(filters=64, kernel_size=4, activation='relu', input_shape=(n_timesteps, n_features)))
+        model.add(Conv1D(filters=64, kernel_size=4, activation='relu'))
         model.add(Dropout(0.5))
         model.add(MaxPooling1D(pool_size=2))
         model.add(Flatten())
