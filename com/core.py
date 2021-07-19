@@ -1,14 +1,16 @@
+import tensorflow as tf
+
 from abc import ABCMeta, abstractmethod, ABC
+from mlxtend.plotting import plot_confusion_matrix
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics.classification import accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, standardscaler
 from tensorflow.python.keras.layers import Bidirectional, LSTM, MaxPooling1D
 from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Conv2D, Conv1D, MaxPool2D, Flatten, Dense, Dropout, BatchNormalization
 from tensorflow.keras.optimizers import Adam
-
-from mlxtend.plotting import plot_confusion_matrix
 
 from com.utility import *
 
@@ -20,7 +22,6 @@ class BaseModel(metaclass=ABCMeta):
     def __init__(self):
         self.X = None
         self.y = None
-
         self.model = None
         self.checkpoint = None
         self.X_train = None
@@ -31,6 +32,7 @@ class BaseModel(metaclass=ABCMeta):
         self.y_val = None
         self.history = None
         self.epochs = 10
+
         self.loadData()
         self.dataProcessing()
 
@@ -38,35 +40,30 @@ class BaseModel(metaclass=ABCMeta):
         """:cvar"""
         self.X, self.y = loadSavedData()
 
+    @abstractmethod
+    def dataProcessing(self):
+        """
+        tldr
+        """
 
-@abstractmethod
-def dataProcessing(self):
-    """
-    tldr
-    """
+    @abstractmethod
+    def modelCreation(self):
+        """:cvar"""
 
+    @abstractmethod
+    def fit(self):
+        ''''
+        verrà implementato dai modelli
+        '''
 
-@abstractmethod
-def modelCreation(self):
-    """:cvar"""
+    @abstractmethod
+    def plot(self):
+        """
 
+        :return:
+        """
 
-@abstractmethod
-def fit(self):
-    ''''
-    verrà implementato dai modelli
-    '''
-
-
-@abstractmethod
-def plot(self):
-    """
-
-    :return:
-    """
-
-
-def main(self):
-    self.modelCreation()
-    self.fit()
-    self.plot()
+    def main(self):
+        self.modelCreation()
+        self.fit()
+        self.plot()

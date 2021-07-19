@@ -326,7 +326,7 @@ def loadData():
     y_df = pd.concat([yDataUCI, yDataWISDM, yDataUMAFall])
     y_df = y_df.reset_index(drop=True)
 
-    #X_df = torch.tensor(X_df.values)
+    # X_df = torch.tensor(X_df.values)
 
     return X_df, y_df
 
@@ -342,7 +342,7 @@ def loadSavedData():
     x = pd.read_csv(xPath)
     y = pd.read_csv(yPath)
 
-    #x = torch.tensor(x.values)
+    # x = torch.tensor(x.values)
 
     return x, y
 
@@ -362,9 +362,9 @@ if __name__ == '__main__':
     # saveData(X, Y)
 
     x, y = loadSavedData()
-    # creating tensor from targets_df
 
+    x = np.array(x)
+    y = np.array(y)
 
-    # printing out result
-    print(torch_tensor)
-    #print(x, y)
+    print(x.shape)
+    print(y.shape)
