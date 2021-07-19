@@ -132,7 +132,6 @@ if __name__ == '__main__':
     X_test = X_test.reshape(336945, 4, 1)
     X_val = X_val.reshape(78621, 4, 1)
 
-
     print(X_train[0].shape, y_train.shape, X_test.shape, y_test.shape, X_val.shape, y_val.shape)
 
     model = Sequential()

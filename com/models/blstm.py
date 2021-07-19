@@ -1,4 +1,3 @@
-
 from com.core import *
 from com.utility import *
 
@@ -8,10 +7,6 @@ RANDOM_SEED = 42
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
-
-gpu_devices = tf.config.experimental.list_physical_devices('GPU')
-for device in gpu_devices:
-    tf.config.experimental.set_memory_growth(device, True)
 
 
 class BLSTM(BaseModel, ABC):
@@ -24,7 +19,8 @@ class BLSTM(BaseModel, ABC):
         self.X = np.array(self.X)
         self.y = np.array(self.y)
 
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3, random_state=42)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3,
+                                                                                random_state=42)
 
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1,
                                                                               random_state=42)
