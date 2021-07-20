@@ -104,9 +104,9 @@ class BaseModel(metaclass=ABCMeta):
         self.y_test = enc.transform(self.y_test)
         self.y_val = enc.transform(self.y_val)
 
-        print('dimensione reshape', self.X_train[..., np.newaxis].shape)
-        print('dimensione reshape', self.X_test[..., np.newaxis].shape)
-        print('dimensione reshape', self.X_val[..., np.newaxis].shape)
+        # print('dimensione reshape', self.X_train[..., np.newaxis].shape)
+        # print('dimensione reshape', self.X_test[..., np.newaxis].shape)
+        # print('dimensione reshape', self.X_val[..., np.newaxis].shape)
 
         if (self.dsConfig == 0):
             # valori da utilizzare se si utilizza UCIHAR e UMAFALL
