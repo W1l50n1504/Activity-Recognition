@@ -46,37 +46,42 @@ class BaseModel(metaclass=ABCMeta):
     def loadData(self):
         """:cvar"""
 
-        x1, y1 = loadUCIHAR()
-        x2, y2 = loadUMAFall()
-        x3, y3 = loadWISDM()
-
         if self.dsConfig == 0:
-            self.X = pd.concat([x1, x2])
-            self.y = pd.concat([y1, y2])
+            x1, y1 = loadUCIHAR()
+            x2, y2 = loadUMAFall()
+            x3, y3 = loadWISDM()
 
             x3 = np.array(x3)
             y3 = np.array(y3)
 
+            self.X = pd.concat([x1, x2])
+            self.y = pd.concat([y1, y2])
             self.X_test = x3
             self.y_test = y3
 
         elif self.dsConfig == 1:
-            self.X = pd.concat([x3, x2])
-            self.y = pd.concat([y3, y2])
+            x1, y1 = loadUCIHAR()
+            x2, y2 = loadUMAFall()
+            x3, y3 = loadWISDM()
 
             x1 = np.array(x1)
             y1 = np.array(y1)
 
+            self.X = pd.concat([x3, x2])
+            self.y = pd.concat([y3, y2])
             self.X_test = x1
             self.y_test = y1
 
         elif self.dsConfig == 2:
+            x1, y1 = loadUCIHAR()
+            x2, y2 = loadUMAFall()
+            x3, y3 = loadWISDM()
+
+            y2 = np.array(y2)
+            x2 = np.array(x2)
+
             self.X = pd.concat([x1, x3])
             self.y = pd.concat([y1, y3])
-
-            x2 = np.array(x2)
-            y2 = np.array(y2)
-
             self.X_test = x2
             self.y_test = y2
 
@@ -140,9 +145,9 @@ class BaseModel(metaclass=ABCMeta):
 
         elif self.dsConfig == 4:
             # prova per vedere il numero di feature necessarie per classificare bene
-            self.X_train = self.X_train.reshape(2594, 4, 1)
-            self.X_test = self.X_test.reshape(1236, 4, 1)
-            self.X_val = self.X_val.reshape(289, 4, 1)
+            self.X_train = self.X_train.reshape(2594, 5, 1)
+            self.X_test = self.X_test.reshape(1236, 5, 1)
+            self.X_val = self.X_val.reshape(289, 5, 1)
 
         print('Fine elaborazione dati.')
         self.y = np.array(self.y)
@@ -169,13 +174,29 @@ class BaseModel(metaclass=ABCMeta):
 
         plt.figure(figsize=(10, 10))
         array = confusion_matrix(rounded_labels, y_pred)
-        df_cm = pd.DataFrame(array, range(8), range(8))
-        df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging", "Falling"]
-        df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging", "Falling"]
-        sns.set(font_scale=1)  # for label size
-        sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                    yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
-                    xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))  # font size
+        df_cm = pd.DataFrame(array, range(6), range(6))
+
+        if self.dsConfig == 4:
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            sns.set(font_scale=1)  # for label size
+            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
+                        yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                        xticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))  # font size
+
+        else:
+
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging",
+                             "Falling"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging",
+                           "Falling"]
+            sns.set(font_scale=1)  # for label size
+            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
+                        yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                        xticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))  # font size
+
         plt.show()
         # Plot training & validation accuracy values
         plt.figure(figsize=(15, 8))
