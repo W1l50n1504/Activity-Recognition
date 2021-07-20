@@ -1,8 +1,6 @@
 from com.core import *
 from com.utility import *
 
-import tensorflow as tf
-
 RANDOM_SEED = 42
 
 np.random.seed(RANDOM_SEED)
@@ -38,13 +36,14 @@ class BLSTM(BaseModel, ABC):
         print('Fine creazione')
 
     def fit(self):
+
         self.checkpoint = ModelCheckpoint(
             checkPointPathBLSTM + '/best_model.hdf5', monitor='val_accuracy', verbose=1, save_best_only=True,
             mode='auto',
             period=1)
 
         self.history = self.model.fit(self.X_train, self.y_train, batch_size=16, epochs=10,
-                                      validation_data=(self.X_test, self.y_test), verbose=1,
+                                      validation_data=(self.X_val, self.y_val), verbose=1,
                                       callbacks=[self.checkpoint])
 
 
