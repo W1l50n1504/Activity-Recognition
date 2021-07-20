@@ -104,33 +104,33 @@ class BaseModel(metaclass=ABCMeta):
         self.y_test = enc.transform(self.y_test)
         self.y_val = enc.transform(self.y_val)
 
-        # print('dimensione reshape', self.X_train[..., np.newaxis].shape)
-        # print('dimensione reshape', self.X_test[..., np.newaxis].shape)
-        # print('dimensione reshape', self.X_val[..., np.newaxis].shape)
+        print('dimensione reshape', self.X_train[..., np.newaxis].shape)
+        print('dimensione reshape', self.X_test[..., np.newaxis].shape)
+        print('dimensione reshape', self.X_val[..., np.newaxis].shape)
 
         if (self.dsConfig == 0):
             # valori da utilizzare se si utilizza UCIHAR e UMAFALL
-            self.X_train = self.X_train.reshape(22449, 4, 1)
+            self.X_train = self.X_train.reshape(19770, 4, 1)
             self.X_test = self.X_test.reshape(1098204, 4, 1)
-            self.X_val = self.X_val.reshape(2495, 4, 1)
+            self.X_val = self.X_val.reshape(2197, 4, 1)
 
         elif (self.dsConfig == 1):
             # UMAFALL WISDM
-            self.X_train = self.X_train.reshape(1007126, 4, 1)
+            self.X_train = self.X_train.reshape(1004446, 4, 1)
             self.X_test = self.X_test.reshape(4119, 4, 1)
-            self.X_val = self.X_val.reshape(111903, 4, 1)
+            self.X_val = self.X_val.reshape(111606, 4, 1)
 
         elif (self.dsConfig == 2):
             # UCIHAR WISDM
             self.X_train = self.X_train.reshape(992090, 4, 1)
-            self.X_test = self.X_test.reshape(20825, 4, 1)
+            self.X_test = self.X_test.reshape(17848, 4, 1)
             self.X_val = self.X_val.reshape(110233, 4, 1)
 
         elif (self.dsConfig == 3):
             # valori da utilizzare se tutti e tre i dataset sono uniti
-            self.X_train = self.X_train.reshape(707582, 4, 1)
-            self.X_test = self.X_test.reshape(336945, 4, 1)
-            self.X_val = self.X_val.reshape(78621, 4, 1)
+            self.X_train = self.X_train.reshape(705707, 4, 1)
+            self.X_test = self.X_test.reshape(336052, 4, 1)
+            self.X_val = self.X_val.reshape(78412, 4, 1)
 
         print('Fine elaborazione dati.')
         self.y = np.array(self.y)
@@ -162,12 +162,11 @@ class BaseModel(metaclass=ABCMeta):
 
         labelDictUMAFALL = {'': 0, '': 5, '': 6, '': 7}
 
-
         plt.figure(figsize=(10, 10))
         array = confusion_matrix(rounded_labels, y_pred)
         df_cm = pd.DataFrame(array, range(8), range(8))
-        df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying","Jogging","Falling"]
-        df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying","Jogging","Falling"]
+        df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging", "Falling"]
+        df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging", "Falling"]
         # sn.set(font_scale=1)#for label size
         # sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
         # yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
