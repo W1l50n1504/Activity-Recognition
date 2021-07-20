@@ -1,8 +1,6 @@
 from com.core import *
 from com.utility import *
 
-from dbn.
-
 RANDOM_SEED = 42
 
 np.random.seed(RANDOM_SEED)

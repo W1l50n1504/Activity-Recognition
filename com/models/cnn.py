@@ -15,31 +15,6 @@ class CNN(BaseModel, ABC):
     def __init__(self):
         super().__init__()
 
-    def dataProcessing(self):
-        print('Elaborazione dei dati...')
-
-        self.X = np.array(self.X)
-        self.y = np.array(self.y)
-
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3,
-                                                                                random_state=42)
-
-        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train, test_size=0.1,
-                                                                              random_state=42)
-
-        enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
-        enc = enc.fit(self.y_train)
-
-        self.y_train = enc.transform(self.y_train)
-        self.y_test = enc.transform(self.y_test)
-        self.y_val = enc.transform(self.y_val)
-
-        self.X_train = self.X_train.reshape(707582, 4, 1)
-        self.X_test = self.X_test.reshape(336945, 4, 1)
-        self.X_val = self.X_val.reshape(78621, 4, 1)
-
-        print('Fine elaborazione dati.')
-
     def modelCreation(self):
         print('Creazione Modello...')
         self.model = Sequential()
@@ -91,63 +66,6 @@ class CNN(BaseModel, ABC):
         _, accuracy = self.model.evaluate(self.X_test, self.y_test, batch_size=batch_size, verbose=0)
 
         print('accuracy: ', accuracy)
-
-    def plot(self):
-        print('Inizio plotting delle metriche...')
-        # plotting confusion matrix
-        rounded_labels = np.argmax(self.y_test, axis=1)
-        y_pred = self.model.predict_classes(self.X_test)
-
-        mat = confusion_matrix(rounded_labels, y_pred)
-        plot_confusion_matrix(conf_mat=mat, show_normed=True, figsize=(10, 10))
-
-        plt.figure(figsize=(10, 10))
-        array = confusion_matrix(rounded_labels, y_pred)
-        df_cm = pd.DataFrame(array, range(6), range(6))
-        df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-        df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-        sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                    yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
-                    xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))  # font size
-
-        plt.show()
-
-        # Plot training & validation accuracy values
-        plt.figure(figsize=(15, 8))
-        epoch_range = range(1, self.epochs + 1)
-        plt.plot(epoch_range, self.history.history['accuracy'])
-        plt.plot(epoch_range, self.history.history['val_accuracy'])
-        plt.title('Model accuracy')
-        plt.ylabel('Validation Accuracy')
-        plt.xlabel('Epoch')
-        plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(trainingValAccCNN)
-        # plt.show()
-
-        # Plot training & validation auc values
-        plt.figure(figsize=(15, 8))
-        epoch_range = range(1, self.epochs + 1)
-        plt.plot(epoch_range, self.history.history['auc'])
-        plt.plot(epoch_range, self.history.history['val_auc'])
-        plt.title('Model auc')
-        plt.ylabel('auc')
-        plt.xlabel('Epoch')
-        plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(trainingValAucCNN)
-        # plt.show()
-
-        # Plot training & validation loss values
-        plt.figure(figsize=(15, 8))
-        plt.plot(epoch_range, self.history.history['loss'])
-        plt.plot(epoch_range, self.history.history['val_loss'])
-        plt.title('Model loss')
-        plt.ylabel('Loss')
-        plt.xlabel('Epoch')
-        plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(modelLossCNN)
-        # plt.show()
-        print('Fine plotting.')
-
 
 if __name__ == '__main__':
     cnn = CNN()
