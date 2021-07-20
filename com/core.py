@@ -155,11 +155,19 @@ class BaseModel(metaclass=ABCMeta):
         mat = confusion_matrix(rounded_labels, y_pred)
         plot_confusion_matrix(conf_mat=mat, show_normed=True, figsize=(10, 10))
 
+        labelDictUCI = {'': 0, '': 1, '': 2,
+                        '': 3, '': 4, '': 5}
+
+        labelDictWISDM = {'': 0, '': 1, '': 2, '': 3, '': 4, '': 6}
+
+        labelDictUMAFALL = {'': 0, '': 5, '': 6, '': 7}
+
+
         plt.figure(figsize=(10, 10))
         array = confusion_matrix(rounded_labels, y_pred)
-        df_cm = pd.DataFrame(array, range(6), range(6))
-        df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-        df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+        df_cm = pd.DataFrame(array, range(8), range(8))
+        df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying","Jogging","Falling"]
+        df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying","Jogging","Falling"]
         # sn.set(font_scale=1)#for label size
         # sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
         # yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
