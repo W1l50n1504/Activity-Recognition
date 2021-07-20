@@ -158,9 +158,9 @@ class BaseModel(metaclass=ABCMeta):
 
     @abstractmethod
     def fit(self):
-        ''''
+        """
         verrà implementato dai modelli
-        '''
+        """
 
     def plot(self):
         rounded_labels = np.argmax(self.y_test, axis=1)
