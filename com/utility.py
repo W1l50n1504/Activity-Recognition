@@ -73,10 +73,10 @@ trainingValAucCNN = absPath_ + '/graphs/cnn/trainingValAucCNN.png'
 modelLossCNN = absPath_ + '/graphs/cnn/modelLossCNN.png'
 
 # grafici BLSTM
-confusionMatrixBLSTM = absPath_ + '/graphs/cnn/heatMapBLSTM.png'
-trainingValAccBLSTM = absPath_ + '/graphs/cnn/trainingValAccBLSTM.png'
-TrainingValAucBLSTM = absPath_ + '/graphs/cnn/trainingValAucBLSTM.png'
-ModelLossBLSTM = absPath_ + '/graphs/cnn/modelLossBLSTM.png'
+confusionMatrixBLSTM = absPath_ + '/graphs/blstm/heatMapBLSTM.png'
+trainingValAccBLSTM = absPath_ + '/graphs/blstm/trainingValAccBLSTM.png'
+TrainingValAucBLSTM = absPath_ + '/graphs/blstm/trainingValAucBLSTM.png'
+ModelLossBLSTM = absPath_ + '/graphs/blstm/modelLossBLSTM.png'
 
 # dizionari riguardanti le attività registrate dai dataset
 labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
