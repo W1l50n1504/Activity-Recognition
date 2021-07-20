@@ -67,6 +67,7 @@ class CNN(BaseModel, ABC):
 
         print('accuracy: ', accuracy)
 
+
 if __name__ == '__main__':
     cnn = CNN()
     # cnn.fitWeb()

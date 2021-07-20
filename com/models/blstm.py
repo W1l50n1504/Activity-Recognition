@@ -36,7 +36,6 @@ class BLSTM(BaseModel, ABC):
         print('Fine creazione')
 
     def fit(self):
-
         self.checkpoint = ModelCheckpoint(
             checkPointPathBLSTM + '/best_model.hdf5', monitor='val_accuracy', verbose=1, save_best_only=True,
             mode='auto',
