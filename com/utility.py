@@ -4,7 +4,6 @@ import os
 import pandas as pd
 import random
 import seaborn as sns
-import torch
 
 from sklearn.utils import resample
 
@@ -84,7 +83,7 @@ labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
 
 labelDictWISDM = {'Walking': 0, 'Upstairs': 1, 'Downstairs': 2, 'Sitting': 3, 'Standing': 4, 'Jogging': 6}
 
-labelDictUMAFALL = {'Walking': 0, 'Laying': 5, 'Jogging': 6, 'Hopping': 7, 'Falling': 8}
+labelDictUMAFALL = {'Walking': 0, 'Laying': 5, 'Jogging': 6, 'Falling': 7}
 
 
 def load_X(X_signals_paths):
@@ -242,9 +241,6 @@ def loadUMAFall():
     X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, '/UMAFall_Subject_01_ADL_Walking_1_2017-04-14_23-25-52.csv',
                                            'Walking', checkpoint)
 
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, '/UMAFall_Subject_02_ADL_Hopping_1_2016-06-13_20-37-40.csv',
-                                           'Hopping', checkpoint)
-
     X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, '/UMAFall_Subject_02_ADL_Jogging_1_2016-06-13_20-40-29.csv',
                                            'Jogging', checkpoint)
     X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
@@ -358,16 +354,5 @@ if __name__ == '__main__':
     # print(x_val)
     # print('\n')
     # print(len(y_val))
-    # X, Y = loadData()
-    # saveData(X, Y)
-
-    x1, y1 = loadSavedData()
-    x2, y2 = loadUCIHAR()
-
-    x1, y1 = np.array(x1), np.array(y1)
-    x2, y2 = np.array(x2), np.array(y2)
-
-    print('x1: ', x1.shape)
-    print('y1: ', y1.shape)
-    print('x2: ', x2.shape)
-    print('y2: ', y2.shape)
+    X, Y = loadData()
+    saveData(X, Y)
