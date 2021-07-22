@@ -1,3 +1,4 @@
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -44,6 +45,14 @@ magUCIgyro = 'magnitudeGyro'
 # MotionSense dataset data & labels
 
 motionPath = absPath_ + '/dataset/MotionSense/'
+
+dws = 'dws/sub_1.csv'
+jog = 'jog/sub_1.csv'
+sit = 'sit/sub_1.csv'
+ups = 'ups/sub_1.csv'
+wlk = 'wlk/sub_1.csv'
+
+activityListMotionSense = [dws, jog, sit, ups, wlk]
 
 xMSacc = 'userAcceleration.x'
 yMSacc = 'userAcceleration.y'
@@ -279,16 +288,25 @@ def loadMotionSense():
     # dataset finali che conterranno i dati per come ci servono
     X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
     Y_df = pd.DataFrame(columns=activity, dtype='int32')
-    labelDictMotionSense = {}
 
-    dws = 'com/dataset/MotionSense/dws/sub_1.csv'
-    jog = 'com/dataset/MotionSense/jog/sub_1.csv'
-    dws = 'com/dataset/MotionSense/sit/sub_1.csv'
-    dws = 'com/dataset/MotionSense/ups/sub_1.csv'
-    dws = 'com/dataset/MotionSense/wlk/sub_1.csv'
+    temp_Df = pd.read_csv(motionPath + activityListMotionSense[0])
 
+    X_df[xacc] = temp_Df[xMSacc]
+    X_df[yacc] = temp_Df[yMSacc]
+    X_df[zacc] = temp_Df[zMSacc]
+    X_df[magacc] = np.sqrt((temp_Df[xMSacc] ** 2) + (temp_Df[yMSacc] ** 2) + (temp_Df[zMSacc] ** 2))
 
-    MSdataset = pd.read_csv(motionPath + dws)
+    X_df[xgyro] = temp_Df[xMSgyro]
+    X_df[xgyro] = temp_Df[yMSgyro]
+    X_df[xgyro] = temp_Df[zMSgyro]
+    X_df[maggyro] = np.sqrt((temp_Df[xMSgyro] ** 2) + (temp_Df[yMSgyro] ** 2) + (temp_Df[zMSgyro] ** 2))
+
+    X_df[std] = X_df.std(axis=1, skipna=True)
+
+    # TODO calcolare angolo tra asse XYZ e gravita' formula=math.atan2(dy, dx)
+
+    print(X_df)
+
     # return X_df.copy(), Y_df.copy()
 
 
