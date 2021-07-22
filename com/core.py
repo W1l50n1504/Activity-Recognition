@@ -37,7 +37,7 @@ class BaseModel(metaclass=ABCMeta):
         self.X_val = None
         self.y_val = None
         self.history = None
-        self.epochs = 10
+        self.epochs = 30
         self.dsConfig = 4
 
         self.loadData()
@@ -145,9 +145,9 @@ class BaseModel(metaclass=ABCMeta):
 
         elif self.dsConfig == 4:
             # prova per vedere il numero di feature necessarie per classificare bene
-            self.X_train = self.X_train.reshape(2594, 5, 1)
-            self.X_test = self.X_test.reshape(1236, 5, 1)
-            self.X_val = self.X_val.reshape(289, 5, 1)
+            self.X_train = self.X_train.reshape(2594, 12, 1)
+            self.X_test = self.X_test.reshape(1236, 12, 1)
+            self.X_val = self.X_val.reshape(289, 12, 1)
 
         print('Fine elaborazione dati.')
         self.y = np.array(self.y)

@@ -41,7 +41,7 @@ class BLSTM(BaseModel, ABC):
             mode='auto',
             period=1)
 
-        self.history = self.model.fit(self.X_train, self.y_train, batch_size=16, epochs=10,
+        self.history = self.model.fit(self.X_train, self.y_train, batch_size=16, epochs=self.epochs,
                                       validation_data=(self.X_val, self.y_val), verbose=1,
                                       callbacks=[self.checkpoint])
 
