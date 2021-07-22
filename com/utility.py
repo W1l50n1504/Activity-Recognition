@@ -274,8 +274,10 @@ def creat_time_series(dt_list, act_labels, trial_codes, mode="mag", labeled=True
     return dataset
 
 
+# funzioni da utilizzare per selezionare le feature dai vari dataset
+
 def reduceSample(Xdf, yDf):
-    # riduce la frequenza dei campioni da 50 Hz a 20Hz, da utilizzare con UCIHAR
+    # riduce la frequenza dei campioni da 100 Hz a 50Hz, da utilizzare con KUHAR
     reduce = pd.DataFrame(
         columns=[xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAngle, yAngle, zAngle, 'label'])
 
@@ -297,7 +299,7 @@ def reduceSample(Xdf, yDf):
 
     reduce['label'] = yDf['Activity']
 
-    reduce = resample(reduce, replace=True, n_samples=int((len(reduce) * 20 / 50)), random_state=0)
+    reduce = resample(reduce, replace=True, n_samples=int((len(reduce) / 2)), random_state=0)
     reduce = reduce.reset_index(drop=True)
 
     finalX[xacc] = reduce[xacc]
@@ -322,7 +324,7 @@ def reduceSample(Xdf, yDf):
 
 def loadNmerge(X_df, Y_df, path, label):
     # Funzione che carica i dati contenuti nei file del dataset UMAFALL ne carica i dati selezionando solo le feature utili
-    # e li concatena nel dataset finale di UMAFALL
+    # e li concatena nel dataset finale di MotionSense
 
     df = pd.read_csv(umafallPath + path, header=None, names=columnsUMAFALL, sep=';')
 
@@ -384,6 +386,9 @@ def loadUCIHAR():
 
 
 def loadMotionSense():
+    #dataset finali che conterranno i dati per come ci servono
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
+    Y_df = pd.DataFrame(columns=activity, dtype='int32')
     return X_df.copy(), Y_df.copy()
 
 
@@ -433,22 +438,8 @@ def loadSavedData():
     # x = torch.tensor(x.values)
 
     return x, y
-
-
-if __name__ == '__main__':
-    # TODO rimuovi WISDM e UMAFALL e inserisci i due nuovi dataset
-
-    # print(XData)
-    # print('\n')
-    # print(len(YData))
-    # print('\n')
-    # print(x_val)
-    # print('\n')
-    # print(len(y_val))
-    # x, y = loadUCIHAR()
-
-    # print(x)
-
+'''
+robe che probabilmente non servono
     ACT_LABELS = ["dws", "ups", "wlk", "jog", "std", "sit"]
     TRIAL_CODES = {
         ACT_LABELS[0]: [1, 2, 11],
@@ -467,6 +458,14 @@ if __name__ == '__main__':
     print("[INFO] -- Selected activites: " + str(act_labels))
     trial_codes = [TRIAL_CODES[act] for act in act_labels]
     dt_list = set_data_types(sdt)
+    print('dtlist', dt_list)
     dataset = creat_time_series(dt_list, act_labels, trial_codes, mode="raw", labeled=True)
     print("[INFO] -- Shape of time-Series dataset:" + str(dataset.shape))
     print(dataset.head())
+
+'''
+
+if __name__ == '__main__':
+    #x, y = loadMotionSense()
+    print('Hello this is Utility')
+
