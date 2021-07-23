@@ -227,23 +227,27 @@ def loadNmerge(X_df, Y_df, path, label):
     # Funzione che carica i dati contenuti nei file del dataset UMAFALL ne carica i dati selezionando solo le feature utili
     # e li concatena nel dataset finale di MotionSense
 
-    df = pd.read_csv(umafallPath + path, header=None, names=columnsUMAFALL, sep=';')
-
-    df = df.loc[(df['Sensor Type'] == 0) & (df['Sensor ID'] == 0)]
+    df = pd.read_csv(path)
     finalDf = pd.DataFrame(columns=finalColumns)
 
-    finalDf[xacc] = df['X - Axis']
-    finalDf[yacc] = df['Y - Axis']
-    finalDf[zacc] = df['Z - Axis']
+    finalDf[xacc] = df[xMSacc]
+    finalDf[yacc] = df[yMSacc]
+    finalDf[zacc] = df[zMSacc]
     finalDf[magacc] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
+
+    finalDf[xgyro] = df[xMSgyro]
+    finalDf[xgyro] = df[yMSgyro]
+    finalDf[xgyro] = df[zMSgyro]
+    finalDf[maggyro] = np.sqrt((df[xMSgyro] ** 2) + (df[yMSgyro] ** 2) + (df[zMSgyro] ** 2))
+    # TODO calcolare angolo tra asse XYZ e gravita' formula=math.atan2(dy, dx), per calcolare l'angolo utilizzare la misurazione della gravità lungo gli assi e
+
+    finalDf[std] = finalDf.std(axis=1, skipna=True)
 
     X_df = pd.concat([X_df, finalDf])
     X_df = X_df.reset_index(drop=True)
 
-    length = len(X_df)
-
-    for i in range(len(Y_df), length):
-        Y_df.append(labelDictUMAFALL[label])
+    for i in range(len(Y_df), len(X_df)):
+        Y_df.append(labelDictMotionSense[label])
 
     return X_df, Y_df
 
@@ -288,26 +292,63 @@ def loadMotionSense():
     # dataset finali che conterranno i dati per come ci servono
     X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
     Y_df = pd.DataFrame(columns=activity, dtype='int32')
+    # carica i dati contenuti nei vari file del dataset (e' stata fatta una selezione dei file) e dovrebbe restituire due
+    # % Accelerometer = 0 sensor type da utilizzare
+    Y_label = []
+    checkpoint = 0
+    selectedFeatures = ['X - Axis', 'Y - Axis', 'Z - Axis', 'magnitude']
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
+    # caricato il dataset levando ; che univa tutte le colonne
+    X_df, Y_labe = loadNmerge(X_df, Y_label, motionPath + activityListMotionSense[0], 'WALKING_UPSTAIRS')
+    """
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, motionPath + activityListMotionSense[1],
+                                           'Hopping', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, '/UMAFall_Subject_02_ADL_Jogging_1_2016-06-13_20-40-29.csv',
+                                           'Jogging', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
+                                           '/UMAFall_Subject_02_ADL_LyingDown_OnABed_1_2016-06-13_20-32-16.csv',
+                                           'Laying', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
+                                           '/UMAFall_Subject_02_Fall_backwardFall_1_2016-06-13_20-51-32.csv',
+                                           'Falling', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
+                                           '/UMAFall_Subject_02_Fall_forwardFall_1_2016-06-13_20-43-52.csv',
+                                           'Falling', checkpoint)
+    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
+                                           '/UMAFall_Subject_02_Fall_lateralFall_1_2016-06-13_20-49-17.csv',
+                                           'Falling', checkpoint)
+    """
+    Y_df = pd.DataFrame(Y_label, columns=activity, dtype='int32')
 
-    temp_Df = pd.read_csv(motionPath + activityListMotionSense[0])
+    return X_df.copy(), Y_df.copy()
 
-    X_df[xacc] = temp_Df[xMSacc]
-    X_df[yacc] = temp_Df[yMSacc]
-    X_df[zacc] = temp_Df[zMSacc]
-    X_df[magacc] = np.sqrt((temp_Df[xMSacc] ** 2) + (temp_Df[yMSacc] ** 2) + (temp_Df[zMSacc] ** 2))
 
-    X_df[xgyro] = temp_Df[xMSgyro]
-    X_df[xgyro] = temp_Df[yMSgyro]
-    X_df[xgyro] = temp_Df[zMSgyro]
-    X_df[maggyro] = np.sqrt((temp_Df[xMSgyro] ** 2) + (temp_Df[yMSgyro] ** 2) + (temp_Df[zMSgyro] ** 2))
-
-    X_df[std] = X_df.std(axis=1, skipna=True)
-
-    # TODO calcolare angolo tra asse XYZ e gravita' formula=math.atan2(dy, dx)
-
-    print(X_df)
-
-    # return X_df.copy(), Y_df.copy()
+def loadWISDM():
+    # carica il dataset WISDM e ne estrapola le etichette delle attivita' convertendole in numeri,
+    # estrae le misurazioni lungo i tre assi e ne calcola la magnitude il tutto all'interno di due
+    # dataset
+    # restituisce un dataset e una lista
+    columns = ['user', 'activity', 'timestamp', 'x-accel', 'y-accel', 'z-accel']
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
+    Y_df = pd.DataFrame(columns=activity, dtype='int32')
+    df = pd.read_csv(wisdmPath, header=None, names=columns)
+    X_df[xWISDM] = df[xWISDM]
+    X_df[yWISDM] = df[yWISDM]
+    # pulizia dei dati caricati, assieme ai numeri viene caricato anche il simbolo ;
+    # e quindi non viene riconosciuto come un valore numerico, in questa maniera lo si rimuove
+    X_df[zWISDM] = df[zWISDM].str.replace(';', '').astype(float)
+    # calcolo della magnitudine
+    X_df[magWISDM] = np.sqrt((X_df[xWISDM] ** 2) + (X_df[yWISDM] ** 2) + (X_df[zWISDM] ** 2))
+    # rimpiazza le stringhe che indicano le attivita' con dei valori numerici
+    df = df.replace('Walking', labelDictWISDM['Walking'], regex=True)
+    df = df.replace('Upstairs', labelDictWISDM['Upstairs'], regex=True)
+    df = df.replace('Downstairs', labelDictWISDM['Downstairs'], regex=True)
+    df = df.replace('Sitting', labelDictWISDM['Sitting'], regex=True)
+    df = df.replace('Standing', labelDictWISDM['Standing'], regex=True)
+    df = df.replace('Jogging', labelDictWISDM['Jogging'], regex=True)
+    Y_df['Activity'] = df['activity']
+    Y_df = Y_df.astype('int64')
+    return X_df.copy(), Y_df.copy()
 
 
 def loadKUHAR():
@@ -386,6 +427,6 @@ robe che probabilmente non servono
 '''
 
 if __name__ == '__main__':
-    # x, y = loadMotionSense()
-    print('Hello this is Utility')
-    loadMotionSense()
+    x, y = loadMotionSense()
+
+    print(x, y)

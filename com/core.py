@@ -37,7 +37,7 @@ class BaseModel(metaclass=ABCMeta):
         self.X_val = None
         self.y_val = None
         self.history = None
-        self.epochs = 30
+        self.epochs = 10
         self.dsConfig = 4
 
         self.loadData()
@@ -145,9 +145,9 @@ class BaseModel(metaclass=ABCMeta):
 
         elif self.dsConfig == 4:
             # prova per vedere il numero di feature necessarie per classificare bene
-            self.X_train = self.X_train.reshape(2594, 12, 1)
-            self.X_test = self.X_test.reshape(1236, 12, 1)
-            self.X_val = self.X_val.reshape(289, 12, 1)
+            self.X_train = self.X_train.reshape(3243, 12, 1)
+            self.X_test = self.X_test.reshape(1545, 12, 1)
+            self.X_val = self.X_val.reshape(361, 12, 1)
 
         print('Fine elaborazione dati.')
         self.y = np.array(self.y)
@@ -232,6 +232,11 @@ class BaseModel(metaclass=ABCMeta):
         plt.legend(['Train', 'Val'], loc='upper left')
         plt.savefig(ModelLossBLSTM)
         # plt.show()
+        f1 = 2 * (tf.compat.v1.metrics.recall(self.y_test, y_pred) * tf.compat.v1.metrics.precision(self.y_test,
+                                                                                                    y_pred)) / (
+                     tf.compat.v1.metrics.recall(self.y_test, y_pred) + tf.compat.v1.metrics.precision(self.y_test,
+                                                                                                       y_pred))
+        print('f1score', f1)
 
     def main(self):
         self.modelCreation()
