@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from abc import ABCMeta, abstractmethod, ABC
+from dbn.tensorflow import SupervisedDBNClassification
 from mlxtend.plotting import plot_confusion_matrix
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
@@ -37,7 +38,7 @@ class BaseModel(metaclass=ABCMeta):
         self.X_val = None
         self.y_val = None
         self.history = None
-        self.epochs = 10
+        self.epochs = 1
         self.dsConfig = 4
 
         self.loadData()
@@ -163,6 +164,7 @@ class BaseModel(metaclass=ABCMeta):
         """
 
     def plot(self):
+
         rounded_labels = np.argmax(self.y_test, axis=1)
         y_pred = self.model.predict_classes(self.X_test)
 
@@ -207,8 +209,8 @@ class BaseModel(metaclass=ABCMeta):
         plt.ylabel('Validation Accuracy')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(trainingValAccBLSTM)
-        # plt.show()
+        # plt.savefig(trainingValAccBLSTM)
+        plt.show()
 
         # Plot training & validation auc values
         plt.figure(figsize=(15, 8))
@@ -219,8 +221,8 @@ class BaseModel(metaclass=ABCMeta):
         plt.ylabel('auc')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(TrainingValAucBLSTM)
-        # plt.show()
+        # plt.savefig(TrainingValAucBLSTM)
+        plt.show()
 
         # Plot training & validation loss values
         plt.figure(figsize=(15, 8))
@@ -230,16 +232,11 @@ class BaseModel(metaclass=ABCMeta):
         plt.ylabel('Loss')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(ModelLossBLSTM)
-        # plt.show()
-        f1 = 2 * (tf.compat.v1.metrics.recall(self.y_test, y_pred) * tf.compat.v1.metrics.precision(self.y_test,
-                                                                                                    y_pred)) / (
-                     tf.compat.v1.metrics.recall(self.y_test, y_pred) + tf.compat.v1.metrics.precision(self.y_test,
-                                                                                                       y_pred))
-        print('f1score', f1)
+        # plt.savefig(ModelLossBLSTM)
+        plt.show()
 
     def main(self):
         self.modelCreation()
         self.fit()
         self.plot()
-        playsound('C:/Users/david/Downloads/ding-sound-effect/Ding-sound-effect.mp3')
+        # playsound('C:/Users/david/Downloads/ding-sound-effect/Ding-sound-effect.mp3')

@@ -105,7 +105,7 @@ class DeepBeliefNet(BaseModel, ABC):
 if __name__ == '__main__':
     X, y = loadSavedData()
     print('Elaborazione dei dati...')
-    ss = standardscaler()
+    ss = StandardScaler()
     X = ss.fit_transform(X)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
