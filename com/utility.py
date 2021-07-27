@@ -1,4 +1,4 @@
-#import math
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -8,9 +8,9 @@ import seaborn as sns
 
 from sklearn.utils import resample
 
-#absPath_ = os.getcwd()
-#absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
-absPath_ = '/home/w1l50n/PycharmProjects/ActivityRecognition683127/com'
+# absPath_ = os.getcwd()
+absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
+# absPath_ = '/home/w1l50n/PycharmProjects/ActivityRecognition683127/com'
 # percorso che contiene tutti i dati precaricati, in modo da evitare di dover ricalcolarli tutti ogni volta
 xPath = absPath_ + '/dataset/DataProcessed/xData.csv'
 yPath = absPath_ + '/dataset/DataProcessed/yData.csv'
@@ -104,8 +104,7 @@ ModelLossBLSTM = absPath_ + '/graphs/blstm/modelLossBLSTM.png'
 
 # dizionari riguardanti le attività registrate dai dataset
 labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
-
-labelDictMotionSense = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'STANDING': 4}
+labelDictMotionSense = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'JOGGING': 6}
 
 # TODO elimina
 labelDictWISDM = {'Walking': 0, 'Upstairs': 1, 'Downstairs': 2, 'Sitting': 3, 'Standing': 4, 'Jogging': 6}
@@ -229,17 +228,29 @@ def loadNmerge(X_df, Y_df, path, label):
 
     df = pd.read_csv(path)
     finalDf = pd.DataFrame(columns=finalColumns)
+    dfMagnitude = pd.DataFrame(columns=['magXY', 'magYZ', 'magXZ'])
 
     finalDf[xacc] = df[xMSacc]
     finalDf[yacc] = df[yMSacc]
     finalDf[zacc] = df[zMSacc]
     finalDf[magacc] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
 
+    dfMagnitude['magXY'] = np.sqrt((df[xMSacc] ** 2) + (df[yMSacc] ** 2))
+    dfMagnitude['magYZ'] = np.sqrt((df[yMSacc] ** 2) + (df[zMSacc] ** 2))
+    dfMagnitude['magXZ'] = np.sqrt((df[xMSacc] ** 2) + (df[zMSacc] ** 2))
+
+    print('magTriAxis\n', dfMagnitude)
+
+    # TODO sistemare la formula di calcolo degli angoli, a volte restituisce NaN
+
+    finalDf[xAngle] = dfMagnitude['magXY'] / (df[xMSacc].apply(np.sqrt) * df[yMSacc].apply(np.sqrt))
+    finalDf[yAngle] = dfMagnitude['magYZ'] / (df[yMSacc].apply(np.sqrt) * df[zMSacc].apply(np.sqrt))
+    finalDf[zAngle] = dfMagnitude['magXY'] / (df[xMSacc].apply(np.sqrt) * df[zMSacc].apply(np.sqrt))
+
     finalDf[xgyro] = df[xMSgyro]
     finalDf[xgyro] = df[yMSgyro]
     finalDf[xgyro] = df[zMSgyro]
     finalDf[maggyro] = np.sqrt((df[xMSgyro] ** 2) + (df[yMSgyro] ** 2) + (df[zMSgyro] ** 2))
-    # TODO calcolare angolo tra asse XYZ e gravita' formula=math.atan2(dy, dx), per calcolare l'angolo utilizzare la misurazione della gravità lungo gli assi e
 
     finalDf[std] = finalDf.std(axis=1, skipna=True)
 
@@ -298,26 +309,19 @@ def loadMotionSense():
     checkpoint = 0
     selectedFeatures = ['X - Axis', 'Y - Axis', 'Z - Axis', 'magnitude']
     X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
+
     # caricato il dataset levando ; che univa tutte le colonne
-    X_df, Y_labe = loadNmerge(X_df, Y_label, motionPath + activityListMotionSense[0], 'WALKING_UPSTAIRS')
-    """
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, motionPath + activityListMotionSense[1],
-                                           'Hopping', checkpoint)
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label, '/UMAFall_Subject_02_ADL_Jogging_1_2016-06-13_20-40-29.csv',
-                                           'Jogging', checkpoint)
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
-                                           '/UMAFall_Subject_02_ADL_LyingDown_OnABed_1_2016-06-13_20-32-16.csv',
-                                           'Laying', checkpoint)
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
-                                           '/UMAFall_Subject_02_Fall_backwardFall_1_2016-06-13_20-51-32.csv',
-                                           'Falling', checkpoint)
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
-                                           '/UMAFall_Subject_02_Fall_forwardFall_1_2016-06-13_20-43-52.csv',
-                                           'Falling', checkpoint)
-    X_df, Y_label, checkpoint = loadNmerge(X_df, Y_label,
-                                           '/UMAFall_Subject_02_Fall_lateralFall_1_2016-06-13_20-49-17.csv',
-                                           'Falling', checkpoint)
-    """
+
+    X_df, Y_label = loadNmerge(X_df, Y_label, motionPath + activityListMotionSense[0], 'WALKING_DOWNSTAIRS')
+
+    X_df, Y_label = loadNmerge(X_df, Y_label, motionPath + activityListMotionSense[1], 'JOGGING')
+
+    X_df, Y_label = loadNmerge(X_df, Y_label, motionPath + activityListMotionSense[2], 'SITTING')
+
+    X_df, Y_label = loadNmerge(X_df, Y_label, motionPath + activityListMotionSense[3], 'WALKING_UPSTAIRS')
+
+    X_df, Y_label = loadNmerge(X_df, Y_label, motionPath + activityListMotionSense[4], 'WALKING')
+
     Y_df = pd.DataFrame(Y_label, columns=activity, dtype='int32')
 
     return X_df.copy(), Y_df.copy()
@@ -427,4 +431,6 @@ robe che probabilmente non servono
 '''
 
 if __name__ == '__main__':
-    print(absPath_)
+    x, y = loadMotionSense()
+
+    print(x[xAngle])
