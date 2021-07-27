@@ -284,6 +284,10 @@ def loadNmergeMS(X_df, Y_df, path, label):
     return X_df, Y_df
 
 
+def normalizeData(df):
+    return (df - df.mean()) / df.std()
+
+
 def loadNmergeKU(X_df, Y_df, path, label):
     # Funzione che carica i dati contenuti nei file del dataset UMAFALL ne carica i dati selezionando solo le feature utili
     # e li concatena nel dataset finale di MotionSense
@@ -299,11 +303,12 @@ def loadNmergeKU(X_df, Y_df, path, label):
     finalDf[xacc] = df[xKUacc]
     finalDf[yacc] = df[yKUacc]
     finalDf[zacc] = df[zKUacc]
+
     finalDf[magacc] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
 
-    dfMagnitude['magXY'] = np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2)))
-    dfMagnitude['magYZ'] = np.sqrt(np.abs((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2)))
-    dfMagnitude['magXZ'] = np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[zacc] ** 2)))
+    dfMagnitude['magXY'] = normalizeData(np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2))))
+    dfMagnitude['magYZ'] = normalizeData(np.sqrt(np.abs((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))))
+    dfMagnitude['magXZ'] = normalizeData(np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[zacc] ** 2))))
 
     dfArcsin['arcsinx'] = dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[yacc])))
     dfArcsin['arcsiny'] = dfMagnitude['magYZ'] / (np.sqrt(np.abs(finalDf[yacc])) * np.sqrt(np.abs(finalDf[zacc])))
@@ -311,9 +316,9 @@ def loadNmergeKU(X_df, Y_df, path, label):
 
     # nonostante la normalizzazione dei valori tra -1 e 1 continuo ad ottenere (molto meno) NaN, cerca modi per eliminare tali valori
 
-    finalDf[xAngle] = np.arcsin((dfArcsin['arcsinx'] - dfArcsin['arcsinx'].mean()) / dfArcsin['arcsinx'].std())
-    finalDf[yAngle] = np.arcsin((dfArcsin['arcsiny'] - dfArcsin['arcsiny'].mean()) / dfArcsin['arcsiny'].std())
-    finalDf[zAngle] = np.arcsin((dfArcsin['arcsinz'] - dfArcsin['arcsinz'].mean()) / dfArcsin['arcsinz'].std())
+    finalDf[xAngle] = np.arcsin(normalizeData(dfArcsin['arcsinx']))
+    finalDf[yAngle] = np.arcsin(normalizeData(dfArcsin['arcsiny']))
+    finalDf[zAngle] = np.arcsin(normalizeData(dfArcsin['arcsinz']))
 
     finalDf[xgyro] = df[xKUgyro]
     finalDf[xgyro] = df[yKUgyro]
@@ -469,7 +474,5 @@ def loadSavedData():
 
 if __name__ == '__main__':
     x, y = loadKUHAR()
-    x1, y1 = loadMotionSense()
 
     print('x\n', x)
-    print('x1\n', x1)
