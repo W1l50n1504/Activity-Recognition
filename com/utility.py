@@ -100,7 +100,7 @@ xAngle = 'angle(X,gravityMean)'
 yAngle = 'angle(Y,gravityMean)'
 zAngle = 'angle(Z,gravityMean)'
 
-finalColumns = [xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAngle, yAngle, zAngle]
+finalColumns = [xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAngle, yAngle, zAngle, 'Activity']
 
 # posizione di salvataggio checkpoint dei modelli
 checkPointPathCNN = absPath_ + '/checkpoint/CNN'
@@ -243,12 +243,12 @@ def loadNmergeMS(X_df, Y_df, path, label):
 
     df = pd.read_csv(path)
 
-    finalDf = pd.DataFrame(columns=finalColumns, dtype='float32')
+    finalDf = pd.DataFrame(columns=finalColumns, dtype='float64')
 
     dfMagnitude = pd.DataFrame(columns=['magXY', 'magYZ', 'magXZ'], dtype='float32')
 
     dfArcsin = pd.DataFrame(columns=['arcsinx', 'arcsiny', 'arcsinz'], dtype='float32')
-    (df - df.mean()) / df.std()
+
     finalDf[xacc] = df[xMSacc]
     finalDf[yacc] = df[yMSacc]
     finalDf[zacc] = df[zMSacc]
@@ -257,8 +257,6 @@ def loadNmergeMS(X_df, Y_df, path, label):
     dfMagnitude['magXY'] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2))
     dfMagnitude['magYZ'] = np.sqrt((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
     dfMagnitude['magXZ'] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[zacc] ** 2))
-
-    # TODO sistemare la formula di calcolo degli angoli, a volte restituisce NaN
 
     dfArcsin['arcsinx'] = dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[yacc])))
     dfArcsin['arcsiny'] = dfMagnitude['magYZ'] / (np.sqrt(np.abs(finalDf[yacc])) * np.sqrt(np.abs(finalDf[zacc])))
@@ -277,6 +275,9 @@ def loadNmergeMS(X_df, Y_df, path, label):
 
     X_df = pd.concat([X_df, finalDf])
     X_df = X_df.reset_index(drop=True)
+
+    # per qualche strano motivo alcuni valori calcolati dall'arcsin risultano essere NaN anche se i dati vengono normalizzati tra -1 e 1
+    # come "soluzione" ho deciso di eliminare tutte le righe che presentano NaN come valore
 
     for i in range(len(Y_df), len(X_df)):
         Y_df.append(labelDictMotionSense[label])
@@ -310,15 +311,18 @@ def loadNmergeKU(X_df, Y_df, path, label):
     dfMagnitude['magYZ'] = normalizeData(np.sqrt(np.abs((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))))
     dfMagnitude['magXZ'] = normalizeData(np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[zacc] ** 2))))
 
-    dfArcsin['arcsinx'] = dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[yacc])))
-    dfArcsin['arcsiny'] = dfMagnitude['magYZ'] / (np.sqrt(np.abs(finalDf[yacc])) * np.sqrt(np.abs(finalDf[zacc])))
-    dfArcsin['arcsinz'] = dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[zacc])))
+    dfArcsin['arcsinx'] = normalizeData(
+        dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[yacc]))))
+    dfArcsin['arcsiny'] = normalizeData(
+        dfMagnitude['magYZ'] / (np.sqrt(np.abs(finalDf[yacc])) * np.sqrt(np.abs(finalDf[zacc]))))
+    dfArcsin['arcsinz'] = normalizeData(
+        dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[zacc]))))
 
     # nonostante la normalizzazione dei valori tra -1 e 1 continuo ad ottenere (molto meno) NaN, cerca modi per eliminare tali valori
 
-    finalDf[xAngle] = np.arcsin(normalizeData(dfArcsin['arcsinx']))
-    finalDf[yAngle] = np.arcsin(normalizeData(dfArcsin['arcsiny']))
-    finalDf[zAngle] = np.arcsin(normalizeData(dfArcsin['arcsinz']))
+    finalDf[xAngle] = np.arcsin(dfArcsin['arcsinx'])
+    finalDf[yAngle] = np.arcsin(dfArcsin['arcsiny'])
+    finalDf[zAngle] = np.arcsin(dfArcsin['arcsinz'])
 
     finalDf[xgyro] = df[xKUgyro]
     finalDf[xgyro] = df[yKUgyro]
@@ -344,8 +348,8 @@ def loadUCIHAR():
 
     X, Y = get_human_dataset()
 
-    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
-    Y_df = pd.DataFrame(columns=activity, dtype='int32')
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
+    Y_df = pd.DataFrame(columns=activity, dtype='int64')
 
     X_df[xacc] = X[xUCIacc]
     X_df[yacc] = X[yUCIacc]
@@ -367,15 +371,15 @@ def loadUCIHAR():
     X_df = X_df.reset_index(drop=True)
     Y_df = Y_df.reset_index(drop=True)
 
-    X_df, Y_df = reduceSample(X_df, Y_df)
+    # X_df, Y_df = reduceSample(X_df, Y_df)
 
     return X_df.copy(), Y_df.copy()
 
 
 def loadMotionSense():
     # dataset finali che conterranno i dati per come ci servono
-    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
-    Y_df = pd.DataFrame(columns=activity, dtype='int32')
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
+    Y_df = pd.DataFrame(columns=activity, dtype='int64')
     # carica i dati contenuti nei vari file del dataset (e' stata fatta una selezione dei file) e dovrebbe restituire due
     # % Accelerometer = 0 sensor type da utilizzare
     Y_label = []
@@ -395,7 +399,17 @@ def loadMotionSense():
 
     X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[4], 'WALKING')
 
-    Y_df = pd.DataFrame(Y_label, columns=activity, dtype='int32')
+    yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
+
+    X_df['Activity'] = yTemp['Activity']
+    X_df.dropna(subset=[xAngle, yAngle, zAngle], inplace=True)
+
+    Y_df = pd.DataFrame(columns=activity, dtype='int64')
+    Y_df['Activity'] = X_df['Activity']
+    X_df.drop('Activity', axis='columns', inplace=True)
+
+    X_df = X_df.reset_index(drop=True)
+    Y_df = Y_df.reset_index(drop=True)
 
     return X_df.copy(), Y_df.copy()
 
@@ -423,7 +437,19 @@ def loadKUHAR():
 
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[4], 'WALKING')
 
-    Y_df = pd.DataFrame(Y_label, columns=activity, dtype='int32')
+    yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
+
+    X_df['Activity'] = yTemp['Activity']
+    X_df.dropna(subset=[xAngle, yAngle, zAngle], inplace=True)
+
+    Y_df = pd.DataFrame(columns=activity, dtype='int64')
+    Y_df['Activity'] = X_df['Activity']
+    X_df.drop('Activity', axis='columns', inplace=True)
+
+    X_df = X_df.reset_index(drop=True)
+    Y_df = Y_df.reset_index(drop=True)
+
+    X_df, Y_df = reduceSample(X_df, Y_df)
 
     return X_df.copy(), Y_df.copy()
 
@@ -436,22 +462,20 @@ def loadData():
 
     # carico UCIHAR
     XDataUCI, yDataUCI = loadUCIHAR()
-
-    # carico UMAFall
-    XDataUMAFall, yDataUMAFall = loadMotionSense()
-
-    # carico WISDM
-    XdataWISDM, yDataWISDM = loadKUHAR()
-
+    print('UCIHAR\n', XDataUCI, yDataUCI)
+    # carico MotionSense
+    XDataMS, yDataMS = loadMotionSense()
+    print('MotionSense\n', XDataMS, yDataMS)
+    # carico KUHAR
+    XDataKU, yDataKU = loadKUHAR()
+    print('KUHAR\n', XDataKU, yDataKU)
     # unione dei tre dataset
 
-    X_df = pd.concat([XDataUCI, XdataWISDM, XDataUMAFall])
+    X_df = pd.concat([XDataUCI, XDataKU, XDataMS])
     X_df = X_df.reset_index(drop=True)
 
-    y_df = pd.concat([yDataUCI, yDataWISDM, yDataUMAFall])
+    y_df = pd.concat([yDataUCI, yDataKU, yDataMS])
     y_df = y_df.reset_index(drop=True)
-
-    # X_df = torch.tensor(X_df.values)
 
     return X_df, y_df
 
@@ -473,6 +497,9 @@ def loadSavedData():
 
 
 if __name__ == '__main__':
-    x, y = loadKUHAR()
+    x, y = loadData()
 
     print('x\n', x)
+    print('y\n', y)
+
+    saveData(x, y)
