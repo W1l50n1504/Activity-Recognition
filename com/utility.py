@@ -104,12 +104,8 @@ ModelLossBLSTM = absPath_ + '/graphs/blstm/modelLossBLSTM.png'
 
 # dizionari riguardanti le attività registrate dai dataset
 labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
+
 labelDictMotionSense = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'JOGGING': 6}
-
-# TODO elimina
-labelDictWISDM = {'Walking': 0, 'Upstairs': 1, 'Downstairs': 2, 'Sitting': 3, 'Standing': 4, 'Jogging': 6}
-
-labelDictUMAFALL = {'Walking': 0, 'Laying': 5, 'Jogging': 6, 'Falling': 7}
 
 
 # funzioni utili per il caricamento di UCIHAR dataset
