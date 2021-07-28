@@ -100,7 +100,8 @@ xAngle = 'angle(X,gravityMean)'
 yAngle = 'angle(Y,gravityMean)'
 zAngle = 'angle(Z,gravityMean)'
 
-finalColumns = [xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAngle, yAngle, zAngle, 'Activity']
+cols = [xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAngle, yAngle, zAngle, 'Activity']
+finalColumns = [xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAngle, yAngle, zAngle]
 
 # posizione di salvataggio checkpoint dei modelli
 checkPointPathCNN = absPath_ + '/checkpoint/CNN'
@@ -267,9 +268,9 @@ def loadNmergeMS(X_df, Y_df, path, label):
     finalDf[zAngle] = np.arcsin((dfArcsin['arcsinz'] - dfArcsin['arcsinz'].mean()) / dfArcsin['arcsinz'].std())
 
     finalDf[xgyro] = df[xMSgyro]
-    finalDf[xgyro] = df[yMSgyro]
-    finalDf[xgyro] = df[zMSgyro]
-    finalDf[maggyro] = np.sqrt((df[xMSgyro] ** 2) + (df[yMSgyro] ** 2) + (df[zMSgyro] ** 2))
+    finalDf[ygyro] = df[yMSgyro]
+    finalDf[zgyro] = df[zMSgyro]
+    finalDf[maggyro] = np.sqrt((finalDf[xgyro] ** 2) + (finalDf[ygyro] ** 2) + (finalDf[zgyro] ** 2))
 
     finalDf[std] = finalDf.std(axis=1, skipna=True)
 
@@ -325,9 +326,9 @@ def loadNmergeKU(X_df, Y_df, path, label):
     finalDf[zAngle] = np.arcsin(dfArcsin['arcsinz'])
 
     finalDf[xgyro] = df[xKUgyro]
-    finalDf[xgyro] = df[yKUgyro]
-    finalDf[xgyro] = df[zKUgyro]
-    finalDf[maggyro] = np.sqrt((df[xKUgyro] ** 2) + (df[yKUgyro] ** 2) + (df[zKUgyro] ** 2))
+    finalDf[ygyro] = df[yKUgyro]
+    finalDf[zgyro] = df[zKUgyro]
+    finalDf[maggyro] = np.sqrt((finalDf[xgyro] ** 2) + (finalDf[ygyro] ** 2) + (finalDf[zgyro] ** 2))
 
     finalDf[std] = finalDf.std(axis=1, skipna=True)
 
@@ -377,17 +378,9 @@ def loadUCIHAR():
 
 
 def loadMotionSense():
-    # dataset finali che conterranno i dati per come ci servono
     X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
     Y_df = pd.DataFrame(columns=activity, dtype='int64')
-    # carica i dati contenuti nei vari file del dataset (e' stata fatta una selezione dei file) e dovrebbe restituire due
-    # % Accelerometer = 0 sensor type da utilizzare
     Y_label = []
-    checkpoint = 0
-    selectedFeatures = ['X - Axis', 'Y - Axis', 'Z - Axis', 'magnitude']
-    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
-
-    # caricato il dataset levando ; che univa tutte le colonne
 
     X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[0], 'WALKING_DOWNSTAIRS')
 
@@ -418,12 +411,7 @@ def loadKUHAR():
     # dataset finali che conterranno i dati per come ci servono
     X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
     Y_df = pd.DataFrame(columns=activity, dtype='int32')
-    # carica i dati contenuti nei vari file del dataset (e' stata fatta una selezione dei file) e dovrebbe restituire due
-    # % Accelerometer = 0 sensor type da utilizzare
     Y_label = []
-    checkpoint = 0
-    selectedFeatures = ['X - Axis', 'Y - Axis', 'Z - Axis', 'magnitude']
-    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
 
     # caricato il dataset levando ; che univa tutte le colonne
 
@@ -496,10 +484,11 @@ def loadSavedData():
     return x, y
 
 
+"""
+    for i in range(0, len(finalColumns)):
+    print(finalColumns[i], '\n', x[finalColumns[i]].isnull().sum().sum())
+"""
+
 if __name__ == '__main__':
     x, y = loadData()
-
-    print('x\n', x)
-    print('y\n', y)
-
-    saveData(x, y)
+    print(x, '/n', y)
