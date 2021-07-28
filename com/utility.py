@@ -450,13 +450,13 @@ def loadData():
 
     # carico UCIHAR
     XDataUCI, yDataUCI = loadUCIHAR()
-    print('UCIHAR\n', XDataUCI, yDataUCI)
+    # print('UCIHAR\n', XDataUCI, yDataUCI)
     # carico MotionSense
     XDataMS, yDataMS = loadMotionSense()
-    print('MotionSense\n', XDataMS, yDataMS)
+    # print('MotionSense\n', XDataMS, yDataMS)
     # carico KUHAR
     XDataKU, yDataKU = loadKUHAR()
-    print('KUHAR\n', XDataKU, yDataKU)
+    # print('KUHAR\n', XDataKU, yDataKU)
     # unione dei tre dataset
 
     X_df = pd.concat([XDataUCI, XDataKU, XDataMS])
@@ -492,3 +492,4 @@ def loadSavedData():
 if __name__ == '__main__':
     x, y = loadData()
     print(x, '/n', y)
+    saveData(x, y)
