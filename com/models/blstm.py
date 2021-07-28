@@ -31,7 +31,7 @@ class BLSTM(BaseModel, ABC):
         self.model.add(Dense(self.y_train.shape[1], activation='softmax'))
 
         self.model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy',
-                           metrics=['accuracy', tf.keras.metrics.AUC()])
+                           metrics=METRICS)
 
         print('Fine creazione')
 
