@@ -53,7 +53,7 @@ class BaseModel(metaclass=ABCMeta):
         self.y_val = None
         self.history = None
         self.epochs = 10
-        self.dsConfig = 4
+        self.dsConfig = 3
 
         self.loadData()
         self.dataProcessing()
@@ -135,22 +135,22 @@ class BaseModel(metaclass=ABCMeta):
         print('dimensione reshape', self.X_val[..., np.newaxis].shape)
 
         if self.dsConfig == 0:
-            # valori da utilizzare se si utilizza UCIHAR e UMAFALL
-            self.X_train = self.X_train.reshape(19770, 12, 1)
-            self.X_test = self.X_test.reshape(1098204, 12, 1)
-            self.X_val = self.X_val.reshape(2197, 12, 1)
+            # valori da utilizzare se si utilizza UCIHAR e KUHAR
+            self.X_train = self.X_train.reshape(18347, 12, 1)
+            self.X_test = self.X_test.reshape(12791, 12, 1)
+            self.X_val = self.X_val.reshape(2039, 12, 1)
 
         elif self.dsConfig == 1:
-            # UMAFALL WISDM
-            self.X_train = self.X_train.reshape(1004446, 12, 1)
-            self.X_test = self.X_test.reshape(4119, 12, 1)
-            self.X_val = self.X_val.reshape(111606, 12, 1)
+            # MotionSense KUHAR
+            self.X_train = self.X_train.reshape(20590, 12, 1)
+            self.X_test = self.X_test.reshape(10299, 12, 1)
+            self.X_val = self.X_val.reshape(2288, 12, 1)
 
         elif self.dsConfig == 2:
-            # UCIHAR WISDM
-            self.X_train = self.X_train.reshape(992090, 12, 1)
-            self.X_test = self.X_test.reshape(17848, 12, 1)
-            self.X_val = self.X_val.reshape(110233, 12, 1)
+            # UCIHAR KUHAR
+            self.X_train = self.X_train.reshape(20781, 12, 1)
+            self.X_test = self.X_test.reshape(10087, 12, 1)
+            self.X_val = self.X_val.reshape(2309, 12, 1)
 
         elif self.dsConfig == 3:
             # valori da utilizzare se tutti e tre i dataset sono uniti

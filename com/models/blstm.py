@@ -48,4 +48,4 @@ class BLSTM(BaseModel, ABC):
 
 if __name__ == '__main__':
     blstm = BLSTM()
-    blstm.main()
+    #blstm.main()
