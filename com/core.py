@@ -193,8 +193,8 @@ class BaseModel(metaclass=ABCMeta):
         df_cm = pd.DataFrame(array, range(6), range(6))
 
         if self.dsConfig == 4:
-            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
-            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
             sns.set(font_scale=1)  # for label size
             sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
                         yticklabels=(
@@ -217,8 +217,8 @@ class BaseModel(metaclass=ABCMeta):
         # Plot training & validation accuracy values
         plt.figure(figsize=(15, 8))
         epoch_range = range(1, self.epochs + 1)
-        plt.plot(epoch_range, self.history.history['accuracy'])
-        plt.plot(epoch_range, self.history.history['val_accuracy'])
+        plt.plot(epoch_range, self.history.history['Accuracy'])
+        plt.plot(epoch_range, self.history.history['val_Accuracy'])
         plt.title('Model accuracy')
         plt.ylabel('Validation Accuracy')
         plt.xlabel('Epoch')
