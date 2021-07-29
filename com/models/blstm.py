@@ -31,13 +31,13 @@ class BLSTM(BaseModel, ABC):
         self.model.add(Dense(self.y_train.shape[1], activation='softmax'))
 
         self.model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy',
-                           metrics=['accuracy', tf.keras.metrics.AUC()])
+                           metrics=METRICS)
 
         print('Fine creazione')
 
     def fit(self):
         self.checkpoint = ModelCheckpoint(
-            checkPointPathBLSTM + '/best_model.hdf5', monitor='val_accuracy', verbose=1, save_best_only=True,
+            checkPointPathBLSTM + '/best_model.hdf5', monitor='val_Accuracy', verbose=1, save_best_only=True,
             mode='auto',
             period=1)
 

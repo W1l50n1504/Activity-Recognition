@@ -1,7 +1,9 @@
 import numpy as np
 import tensorflow as tf
+import tensorflow_addons as tfa
 
 from abc import ABCMeta, abstractmethod, ABC
+# from dbn.tensorflow import SupervisedDBNClassification
 from mlxtend.plotting import plot_confusion_matrix
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
@@ -22,6 +24,19 @@ for device in gpu_devices:
 # import required module
 from playsound import playsound
 
+# in f1score cambia il numero di classes se cambi il numero di dataset che carichi, se si tratta solo di UCIHAR
+# metti 6, 7 negli altri casi
+
+METRICS = [
+    tf.keras.metrics.Accuracy(name="Accuracy"),
+    tf.keras.metrics.Precision(name="precision"),
+    tf.keras.metrics.Recall(name="recall"),
+    tfa.metrics.F1Score(num_classes=6, threshold=0.5),
+    tf.keras.metrics.AUC(name="auc")
+    # tf.keras.metrics.BinaryAccuracy(name="binaryAcc"),
+
+]
+
 
 class BaseModel(metaclass=ABCMeta):
 
@@ -37,7 +52,7 @@ class BaseModel(metaclass=ABCMeta):
         self.X_val = None
         self.y_val = None
         self.history = None
-        self.epochs = 30
+        self.epochs = 10
         self.dsConfig = 4
 
         self.loadData()
@@ -48,8 +63,8 @@ class BaseModel(metaclass=ABCMeta):
 
         if self.dsConfig == 0:
             x1, y1 = loadUCIHAR()
-            x2, y2 = loadUMAFall()
-            x3, y3 = loadWISDM()
+            x2, y2 = loadKUHAR()
+            x3, y3 = loadMotionSense()
 
             x3 = np.array(x3)
             y3 = np.array(y3)
@@ -61,8 +76,8 @@ class BaseModel(metaclass=ABCMeta):
 
         elif self.dsConfig == 1:
             x1, y1 = loadUCIHAR()
-            x2, y2 = loadUMAFall()
-            x3, y3 = loadWISDM()
+            x2, y2 = loadKUHAR()
+            x3, y3 = loadMotionSense()
 
             x1 = np.array(x1)
             y1 = np.array(y1)
@@ -74,8 +89,8 @@ class BaseModel(metaclass=ABCMeta):
 
         elif self.dsConfig == 2:
             x1, y1 = loadUCIHAR()
-            x2, y2 = loadUMAFall()
-            x3, y3 = loadWISDM()
+            x2, y2 = loadKUHAR()
+            x3, y3 = loadMotionSense()
 
             y2 = np.array(y2)
             x2 = np.array(x2)
@@ -121,33 +136,33 @@ class BaseModel(metaclass=ABCMeta):
 
         if self.dsConfig == 0:
             # valori da utilizzare se si utilizza UCIHAR e UMAFALL
-            self.X_train = self.X_train.reshape(19770, 4, 1)
-            self.X_test = self.X_test.reshape(1098204, 4, 1)
-            self.X_val = self.X_val.reshape(2197, 4, 1)
+            self.X_train = self.X_train.reshape(19770, 12, 1)
+            self.X_test = self.X_test.reshape(1098204, 12, 1)
+            self.X_val = self.X_val.reshape(2197, 12, 1)
 
         elif self.dsConfig == 1:
             # UMAFALL WISDM
-            self.X_train = self.X_train.reshape(1004446, 4, 1)
-            self.X_test = self.X_test.reshape(4119, 4, 1)
-            self.X_val = self.X_val.reshape(111606, 4, 1)
+            self.X_train = self.X_train.reshape(1004446, 12, 1)
+            self.X_test = self.X_test.reshape(4119, 12, 1)
+            self.X_val = self.X_val.reshape(111606, 12, 1)
 
         elif self.dsConfig == 2:
             # UCIHAR WISDM
-            self.X_train = self.X_train.reshape(992090, 4, 1)
-            self.X_test = self.X_test.reshape(17848, 4, 1)
-            self.X_val = self.X_val.reshape(110233, 4, 1)
+            self.X_train = self.X_train.reshape(992090, 12, 1)
+            self.X_test = self.X_test.reshape(17848, 12, 1)
+            self.X_val = self.X_val.reshape(110233, 12, 1)
 
         elif self.dsConfig == 3:
             # valori da utilizzare se tutti e tre i dataset sono uniti
-            self.X_train = self.X_train.reshape(705707, 4, 1)
-            self.X_test = self.X_test.reshape(336052, 4, 1)
-            self.X_val = self.X_val.reshape(78412, 4, 1)
+            self.X_train = self.X_train.reshape(20900, 12, 1)
+            self.X_test = self.X_test.reshape(9954, 12, 1)
+            self.X_val = self.X_val.reshape(2323, 12, 1)
 
         elif self.dsConfig == 4:
             # prova per vedere il numero di feature necessarie per classificare bene
-            self.X_train = self.X_train.reshape(2594, 12, 1)
-            self.X_test = self.X_test.reshape(1236, 12, 1)
-            self.X_val = self.X_val.reshape(289, 12, 1)
+            self.X_train = self.X_train.reshape(6488, 12, 1)
+            self.X_test = self.X_test.reshape(3090, 12, 1)
+            self.X_val = self.X_val.reshape(721, 12, 1)
 
         print('Fine elaborazione dati.')
         self.y = np.array(self.y)
@@ -163,6 +178,7 @@ class BaseModel(metaclass=ABCMeta):
         """
 
     def plot(self):
+
         rounded_labels = np.argmax(self.y_test, axis=1)
         y_pred = self.model.predict_classes(self.X_test)
 
@@ -181,34 +197,34 @@ class BaseModel(metaclass=ABCMeta):
             df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
             sns.set(font_scale=1)  # for label size
             sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                        yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                        yticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
                         xticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))  # font size
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
 
         else:
 
-            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging",
-                             "Falling"]
-            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging",
-                           "Falling"]
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
             sns.set(font_scale=1)  # for label size
             sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                        yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                        yticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
                         xticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))  # font size
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
 
         plt.show()
         # Plot training & validation accuracy values
         plt.figure(figsize=(15, 8))
         epoch_range = range(1, self.epochs + 1)
-        plt.plot(epoch_range, self.history.history['accuracy'])
-        plt.plot(epoch_range, self.history.history['val_accuracy'])
+        plt.plot(epoch_range, self.history.history['Accuracy'])
+        plt.plot(epoch_range, self.history.history['val_Accuracy'])
         plt.title('Model accuracy')
         plt.ylabel('Validation Accuracy')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(trainingValAccBLSTM)
-        # plt.show()
+        # plt.savefig(trainingValAccBLSTM)
+        plt.show()
 
         # Plot training & validation auc values
         plt.figure(figsize=(15, 8))
@@ -219,8 +235,8 @@ class BaseModel(metaclass=ABCMeta):
         plt.ylabel('auc')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(TrainingValAucBLSTM)
-        # plt.show()
+        # plt.savefig(TrainingValAucBLSTM)
+        plt.show()
 
         # Plot training & validation loss values
         plt.figure(figsize=(15, 8))
@@ -230,11 +246,11 @@ class BaseModel(metaclass=ABCMeta):
         plt.ylabel('Loss')
         plt.xlabel('Epoch')
         plt.legend(['Train', 'Val'], loc='upper left')
-        plt.savefig(ModelLossBLSTM)
-        # plt.show()
+        # plt.savefig(ModelLossBLSTM)
+        plt.show()
 
     def main(self):
         self.modelCreation()
         self.fit()
         self.plot()
-        playsound('C:/Users/david/Downloads/ding-sound-effect/Ding-sound-effect.mp3')
+        # playsound('C:/Users/david/Downloads/ding-sound-effect/Ding-sound-effect.mp3')

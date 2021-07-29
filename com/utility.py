@@ -1,3 +1,4 @@
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -9,7 +10,7 @@ from sklearn.utils import resample
 
 # absPath_ = os.getcwd()
 absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
-# absPath_ = '/home/w1l50n/PycharmProjects/ActivityRecognition683127-main/com'
+# absPath_ = '/home/w1l50n/PycharmProjects/ActivityRecognition683127/com'
 # percorso che contiene tutti i dati precaricati, in modo da evitare di dover ricalcolarli tutti ogni volta
 xPath = absPath_ + '/dataset/DataProcessed/xData.csv'
 yPath = absPath_ + '/dataset/DataProcessed/yData.csv'
@@ -45,17 +46,44 @@ magUCIgyro = 'magnitudeGyro'
 
 motionPath = absPath_ + '/dataset/MotionSense/'
 
+dws = 'dws/sub_1.csv'
+jog = 'jog/sub_1.csv'
+sit = 'sit/sub_1.csv'
+ups = 'ups/sub_1.csv'
+wlk = 'wlk/sub_1.csv'
+
+activityListMotionSense = [dws, jog, sit, ups, wlk]
+
 xMSacc = 'userAcceleration.x'
 yMSacc = 'userAcceleration.y'
 zMSacc = 'userAcceleration.z'
-magMSacc = 'magnitudeAcc'
 xMSgyro = 'rotationRate.x'
 yMSgyro = 'rotationRate.y'
 zMSgyro = 'rotationRate.z'
-magMSgyro = 'magnitudeGyro'
 
 # KUHAR dataset data & labels
+kuharPath = absPath_ + '/dataset/KU HAR Dataset/'
 
+stand = '0.Stand/1001_A_1.csv'
+sit = '1.Sit/1001_B_1.csv'
+lay = '5.Lay/1001_F_1.csv'
+walk = '11.Walk/1002_L_1.csv'
+run = '14.Run/1002_O_1.csv'
+ups = '15.Stair-up/1002_S_1.csv'
+downs = '16.Stair-down/1002_T_1.csv'
+
+activityListKUHAR = [stand, sit, lay, walk, run, ups, downs]
+
+time1 = 'time1'
+xKUacc = 'userAcceleration.x'
+yKUacc = 'userAcceleration.y'
+zKUacc = 'userAcceleration.z'
+time2 = 'time2'
+xKUgyro = 'rotationRate.x'
+yKUgyro = 'rotationRate.y'
+zKUgyro = 'rotationRate.z'
+
+columnsKUHAR = [time1, xKUacc, yKUacc, zKUacc, time2, xKUgyro, yKUgyro, zKUgyro]
 
 # labels per il trainset
 xacc = 'x-acc'
@@ -72,6 +100,7 @@ xAngle = 'angle(X,gravityMean)'
 yAngle = 'angle(Y,gravityMean)'
 zAngle = 'angle(Z,gravityMean)'
 
+cols = [xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAngle, yAngle, zAngle, 'Activity']
 finalColumns = [xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAngle, yAngle, zAngle]
 
 # posizione di salvataggio checkpoint dei modelli
@@ -94,12 +123,9 @@ TrainingValAucBLSTM = absPath_ + '/graphs/blstm/trainingValAucBLSTM.png'
 ModelLossBLSTM = absPath_ + '/graphs/blstm/modelLossBLSTM.png'
 
 # dizionari riguardanti le attività registrate dai dataset
-labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2,
-                'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
+labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
 
-labelDictWISDM = {'Walking': 0, 'Upstairs': 1, 'Downstairs': 2, 'Sitting': 3, 'Standing': 4, 'Jogging': 6}
-
-labelDictUMAFALL = {'Walking': 0, 'Laying': 5, 'Jogging': 6, 'Falling': 7}
+labelDictMotionSense = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'JOGGING': 6}
 
 
 # funzioni utili per il caricamento di UCIHAR dataset
@@ -165,117 +191,9 @@ def get_human_dataset():
     return X, y
 
 
-# funzioni utili per il caricamento di MotionSense dataset
-
-
-def get_ds_infos():
-    """
-    Read the file includes data subject information.
-
-    Data Columns:
-    0: code [1-24]
-    1: weight [kg]
-    2: height [cm]
-    3: age [years]
-    4: gender [0:Female, 1:Male]
-
-    Returns:
-        A pandas DataFrame that contains inforamtion about data subjects' attributes
-    """
-
-    dss = pd.read_csv(motionPath + "data_subjects_info.csv")
-    print("[INFO] -- Data subjects' information is imported.")
-
-    return dss
-
-
-def set_data_types(data_types=["userAcceleration"]):
-    """
-    Select the sensors and the mode to shape the final dataset.
-
-    Args:
-        data_types: A list of sensor data type from this list: [attitude, gravity, rotationRate, userAcceleration]
-
-    Returns:
-        It returns a list of columns to use for creating time-series from files.
-    """
-    dt_list = []
-    for t in data_types:
-        if t != "attitude":
-            dt_list.append([t + ".x", t + ".y", t + ".z"])
-        else:
-            dt_list.append([t + ".roll", t + ".pitch", t + ".yaw"])
-
-    return dt_list
-
-
-def creat_time_series(dt_list, act_labels, trial_codes, mode="mag", labeled=True):
-    """
-    Args:
-        dt_list: A list of columns that shows the type of data we want.
-        act_labels: list of activites
-        trial_codes: list of trials
-        mode: It can be "raw" which means you want raw data
-        for every dimention of each data type,
-        [attitude(roll, pitch, yaw); gravity(x, y, z); rotationRate(x, y, z); userAcceleration(x,y,z)].
-        or it can be "mag" which means you only want the magnitude for each data type: (x^2+y^2+z^2)^(1/2)
-        labeled: True, if we want a labeld dataset. False, if we only want sensor values.
-
-    Returns:
-        It returns a time-series of sensor data.
-
-    """
-    num_data_cols = len(dt_list) if mode == "mag" else len(dt_list * 3)
-
-    if labeled:
-        dataset = np.zeros((0, num_data_cols + 7))  # "7" --> [act, code, weight, height, age, gender, trial]
-    else:
-        dataset = np.zeros((0, num_data_cols))
-
-    ds_list = get_ds_infos()
-
-    print("[INFO] -- Creating Time-Series")
-    for sub_id in ds_list["code"]:
-        for act_id, act in enumerate(act_labels):
-            for trial in trial_codes[act_id]:
-                fname = motionPath + 'A_DeviceMotion_data/' + act + '_' + str(trial) + '/sub_' + str(
-                    int(sub_id)) + '.csv'
-                raw_data = pd.read_csv(fname)
-                raw_data = raw_data.drop(['Unnamed: 0'], axis=1)
-                vals = np.zeros((len(raw_data), num_data_cols))
-                for x_id, axes in enumerate(dt_list):
-                    if mode == "mag":
-                        vals[:, x_id] = (raw_data[axes] ** 2).sum(axis=1) ** 0.5
-                    else:
-                        vals[:, x_id * 3:(x_id + 1) * 3] = raw_data[axes].values
-                    vals = vals[:, :num_data_cols]
-                if labeled:
-                    lbls = np.array([[act_id,
-                                      sub_id - 1,
-                                      ds_list["weight"][sub_id - 1],
-                                      ds_list["height"][sub_id - 1],
-                                      ds_list["age"][sub_id - 1],
-                                      ds_list["gender"][sub_id - 1],
-                                      trial
-                                      ]] * len(raw_data))
-                    vals = np.concatenate((vals, lbls), axis=1)
-                dataset = np.append(dataset, vals, axis=0)
-    cols = []
-    for axes in dt_list:
-        if mode == "raw":
-            cols += axes
-        else:
-            cols += [str(axes[0][:-2])]
-
-    if labeled:
-        cols += ["act", "id", "weight", "height", "age", "gender", "trial"]
-
-    dataset = pd.DataFrame(data=dataset, columns=cols)
-    return dataset
-
-
+# funzioni da utilizzare per selezionare le feature dai vari dataset
 def reduceSample(Xdf, yDf):
-    # riduce la frequenza dei campioni da 50 Hz a 20Hz, da utilizzare con UCIHAR
+    # riduce la frequenza dei campioni da 100 Hz a 50Hz, da utilizzare con KUHAR
     reduce = pd.DataFrame(
         columns=[xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAngle, yAngle, zAngle, 'label'])
 
@@ -297,7 +215,7 @@ def reduceSample(Xdf, yDf):
 
     reduce['label'] = yDf['Activity']
 
-    reduce = resample(reduce, replace=True, n_samples=int((len(reduce) * 20 / 50)), random_state=0)
+    reduce = resample(reduce, replace=True, n_samples=int((len(reduce) / 2)), random_state=0)
     reduce = reduce.reset_index(drop=True)
 
     finalX[xacc] = reduce[xacc]
@@ -320,29 +238,105 @@ def reduceSample(Xdf, yDf):
     return finalX.copy(), finalY.copy()
 
 
-def loadNmerge(X_df, Y_df, path, label):
+def loadNmergeMS(X_df, Y_df, path, label):
     # Funzione che carica i dati contenuti nei file del dataset UMAFALL ne carica i dati selezionando solo le feature utili
-    # e li concatena nel dataset finale di UMAFALL
+    # e li concatena nel dataset finale di MotionSense
 
-    df = pd.read_csv(umafallPath + path, header=None, names=columnsUMAFALL, sep=';')
+    df = pd.read_csv(path)
 
-    # ho preso solo le misurazioni dell'accelerometro e della posizione che mi interessa prendere anche il giroscopio 1
-    # TODO bisogna creare due dataset uno che contiene i dati relativi all'accelerometro e l'altro riguardante il giroscopio
-    df = df.loc[(df['Sensor Type'] == 0) & (df['Sensor ID'] == 0)]
-    finalDf = pd.DataFrame(columns=finalColumns)
+    finalDf = pd.DataFrame(columns=finalColumns, dtype='float64')
 
-    finalDf[xacc] = df['X - Axis']
-    finalDf[yacc] = df['Y - Axis']
-    finalDf[zacc] = df['Z - Axis']
+    dfMagnitude = pd.DataFrame(columns=['magXY', 'magYZ', 'magXZ'], dtype='float32')
+
+    dfArcsin = pd.DataFrame(columns=['arcsinx', 'arcsiny', 'arcsinz'], dtype='float32')
+
+    finalDf[xacc] = df[xMSacc]
+    finalDf[yacc] = df[yMSacc]
+    finalDf[zacc] = df[zMSacc]
     finalDf[magacc] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
+
+    dfMagnitude['magXY'] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2))
+    dfMagnitude['magYZ'] = np.sqrt((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
+    dfMagnitude['magXZ'] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[zacc] ** 2))
+
+    dfArcsin['arcsinx'] = dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[yacc])))
+    dfArcsin['arcsiny'] = dfMagnitude['magYZ'] / (np.sqrt(np.abs(finalDf[yacc])) * np.sqrt(np.abs(finalDf[zacc])))
+    dfArcsin['arcsinz'] = dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[zacc])))
+
+    finalDf[xAngle] = np.arcsin((dfArcsin['arcsinx'] - dfArcsin['arcsinx'].mean()) / dfArcsin['arcsinx'].std())
+    finalDf[yAngle] = np.arcsin((dfArcsin['arcsiny'] - dfArcsin['arcsiny'].mean()) / dfArcsin['arcsiny'].std())
+    finalDf[zAngle] = np.arcsin((dfArcsin['arcsinz'] - dfArcsin['arcsinz'].mean()) / dfArcsin['arcsinz'].std())
+
+    finalDf[xgyro] = df[xMSgyro]
+    finalDf[ygyro] = df[yMSgyro]
+    finalDf[zgyro] = df[zMSgyro]
+    finalDf[maggyro] = np.sqrt((finalDf[xgyro] ** 2) + (finalDf[ygyro] ** 2) + (finalDf[zgyro] ** 2))
+
+    finalDf[std] = finalDf.std(axis=1, skipna=True)
 
     X_df = pd.concat([X_df, finalDf])
     X_df = X_df.reset_index(drop=True)
 
-    length = len(X_df)
+    # per qualche strano motivo alcuni valori calcolati dall'arcsin risultano essere NaN anche se i dati vengono normalizzati tra -1 e 1
+    # come "soluzione" ho deciso di eliminare tutte le righe che presentano NaN come valore
 
-    for i in range(len(Y_df), length):
-        Y_df.append(labelDictUMAFALL[label])
+    for i in range(len(Y_df), len(X_df)):
+        Y_df.append(labelDictMotionSense[label])
+
+    return X_df, Y_df
+
+
+def normalizeData(df):
+    return (df - df.mean()) / df.std()
+
+
+def loadNmergeKU(X_df, Y_df, path, label):
+    # Funzione che carica i dati contenuti nei file del dataset UMAFALL ne carica i dati selezionando solo le feature utili
+    # e li concatena nel dataset finale di MotionSense
+
+    df = pd.read_csv(path, header=None, names=columnsKUHAR)
+
+    finalDf = pd.DataFrame(columns=finalColumns, dtype='float32')
+
+    dfMagnitude = pd.DataFrame(columns=['magXY', 'magYZ', 'magXZ'], dtype='float32')
+
+    dfArcsin = pd.DataFrame(columns=['arcsinx', 'arcsiny', 'arcsinz'], dtype='float32')
+
+    finalDf[xacc] = df[xKUacc]
+    finalDf[yacc] = df[yKUacc]
+    finalDf[zacc] = df[zKUacc]
+
+    finalDf[magacc] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
+
+    dfMagnitude['magXY'] = normalizeData(np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2))))
+    dfMagnitude['magYZ'] = normalizeData(np.sqrt(np.abs((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))))
+    dfMagnitude['magXZ'] = normalizeData(np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[zacc] ** 2))))
+
+    dfArcsin['arcsinx'] = normalizeData(
+        dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[yacc]))))
+    dfArcsin['arcsiny'] = normalizeData(
+        dfMagnitude['magYZ'] / (np.sqrt(np.abs(finalDf[yacc])) * np.sqrt(np.abs(finalDf[zacc]))))
+    dfArcsin['arcsinz'] = normalizeData(
+        dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[zacc]))))
+
+    # nonostante la normalizzazione dei valori tra -1 e 1 continuo ad ottenere (molto meno) NaN, cerca modi per eliminare tali valori
+
+    finalDf[xAngle] = np.arcsin(dfArcsin['arcsinx'])
+    finalDf[yAngle] = np.arcsin(dfArcsin['arcsiny'])
+    finalDf[zAngle] = np.arcsin(dfArcsin['arcsinz'])
+
+    finalDf[xgyro] = df[xKUgyro]
+    finalDf[ygyro] = df[yKUgyro]
+    finalDf[zgyro] = df[zKUgyro]
+    finalDf[maggyro] = np.sqrt((finalDf[xgyro] ** 2) + (finalDf[ygyro] ** 2) + (finalDf[zgyro] ** 2))
+
+    finalDf[std] = finalDf.std(axis=1, skipna=True)
+
+    X_df = pd.concat([X_df, finalDf])
+    X_df = X_df.reset_index(drop=True)
+
+    for i in range(len(Y_df), len(X_df)):
+        Y_df.append(labelDictMotionSense[label])
 
     return X_df, Y_df
 
@@ -355,8 +349,8 @@ def loadUCIHAR():
 
     X, Y = get_human_dataset()
 
-    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
-    Y_df = pd.DataFrame(columns=activity, dtype='int32')
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
+    Y_df = pd.DataFrame(columns=activity, dtype='int64')
 
     X_df[xacc] = X[xUCIacc]
     X_df[yacc] = X[yUCIacc]
@@ -378,16 +372,73 @@ def loadUCIHAR():
     X_df = X_df.reset_index(drop=True)
     Y_df = Y_df.reset_index(drop=True)
 
-    X_df, Y_df = reduceSample(X_df, Y_df)
+    # X_df, Y_df = reduceSample(X_df, Y_df)
 
     return X_df.copy(), Y_df.copy()
 
 
 def loadMotionSense():
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
+    Y_df = pd.DataFrame(columns=activity, dtype='int64')
+    Y_label = []
+
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[0], 'WALKING_DOWNSTAIRS')
+
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[1], 'JOGGING')
+
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[2], 'SITTING')
+
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[3], 'WALKING_UPSTAIRS')
+
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[4], 'WALKING')
+
+    yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
+
+    X_df['Activity'] = yTemp['Activity']
+    X_df.dropna(subset=[xAngle, yAngle, zAngle], inplace=True)
+
+    Y_df = pd.DataFrame(columns=activity, dtype='int64')
+    Y_df['Activity'] = X_df['Activity']
+    X_df.drop('Activity', axis='columns', inplace=True)
+
+    X_df = X_df.reset_index(drop=True)
+    Y_df = Y_df.reset_index(drop=True)
+
     return X_df.copy(), Y_df.copy()
 
 
 def loadKUHAR():
+    # dataset finali che conterranno i dati per come ci servono
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
+    Y_df = pd.DataFrame(columns=activity, dtype='int32')
+    Y_label = []
+
+    # caricato il dataset levando ; che univa tutte le colonne
+
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[0], 'WALKING_DOWNSTAIRS')
+
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[1], 'JOGGING')
+
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[2], 'SITTING')
+
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[3], 'WALKING_UPSTAIRS')
+
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[4], 'WALKING')
+
+    yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
+
+    X_df['Activity'] = yTemp['Activity']
+    X_df.dropna(subset=[xAngle, yAngle, zAngle], inplace=True)
+
+    Y_df = pd.DataFrame(columns=activity, dtype='int64')
+    Y_df['Activity'] = X_df['Activity']
+    X_df.drop('Activity', axis='columns', inplace=True)
+
+    X_df = X_df.reset_index(drop=True)
+    Y_df = Y_df.reset_index(drop=True)
+
+    X_df, Y_df = reduceSample(X_df, Y_df)
+
     return X_df.copy(), Y_df.copy()
 
 
@@ -399,22 +450,20 @@ def loadData():
 
     # carico UCIHAR
     XDataUCI, yDataUCI = loadUCIHAR()
-
-    # carico UMAFall
-    XDataUMAFall, yDataUMAFall = loadMotionSense()
-
-    # carico WISDM
-    XdataWISDM, yDataWISDM = loadKUHAR()
-
+    # print('UCIHAR\n', XDataUCI, yDataUCI)
+    # carico MotionSense
+    XDataMS, yDataMS = loadMotionSense()
+    # print('MotionSense\n', XDataMS, yDataMS)
+    # carico KUHAR
+    XDataKU, yDataKU = loadKUHAR()
+    # print('KUHAR\n', XDataKU, yDataKU)
     # unione dei tre dataset
 
-    X_df = pd.concat([XDataUCI, XdataWISDM, XDataUMAFall])
+    X_df = pd.concat([XDataUCI, XDataKU, XDataMS])
     X_df = X_df.reset_index(drop=True)
 
-    y_df = pd.concat([yDataUCI, yDataWISDM, yDataUMAFall])
+    y_df = pd.concat([yDataUCI, yDataKU, yDataMS])
     y_df = y_df.reset_index(drop=True)
-
-    # X_df = torch.tensor(X_df.values)
 
     return X_df, y_df
 
@@ -435,38 +484,12 @@ def loadSavedData():
     return x, y
 
 
+"""
+    for i in range(0, len(finalColumns)):
+    print(finalColumns[i], '\n', x[finalColumns[i]].isnull().sum().sum())
+"""
+
 if __name__ == '__main__':
-    # TODO rimuovi WISDM e UMAFALL e inserisci i due nuovi dataset
-
-    # print(XData)
-    # print('\n')
-    # print(len(YData))
-    # print('\n')
-    # print(x_val)
-    # print('\n')
-    # print(len(y_val))
-    # x, y = loadUCIHAR()
-
-    # print(x)
-
-    ACT_LABELS = ["dws", "ups", "wlk", "jog", "std", "sit"]
-    TRIAL_CODES = {
-        ACT_LABELS[0]: [1, 2, 11],
-        ACT_LABELS[1]: [3, 4, 12],
-        ACT_LABELS[2]: [7, 8, 15],
-        ACT_LABELS[3]: [9, 16],
-        ACT_LABELS[4]: [6, 14],
-        ACT_LABELS[5]: [5, 13]
-    }
-
-    ## Here we set parameter to build labeld time-series from dataset of "(A)DeviceMotion_data"
-    ## attitude(roll, pitch, yaw); gravity(x, y, z); rotationRate(x, y, z); userAcceleration(x,y,z)
-    sdt = ["attitude", "userAcceleration"]
-    print("[INFO] -- Selected sensor data types: " + str(sdt))
-    act_labels = ACT_LABELS[0:4]
-    print("[INFO] -- Selected activites: " + str(act_labels))
-    trial_codes = [TRIAL_CODES[act] for act in act_labels]
-    dt_list = set_data_types(sdt)
-    dataset = creat_time_series(dt_list, act_labels, trial_codes, mode="raw", labeled=True)
-    print("[INFO] -- Shape of time-Series dataset:" + str(dataset.shape))
-    print(dataset.head())
+    x, y = loadData()
+    print(x, '/n', y)
+    saveData(x, y)
