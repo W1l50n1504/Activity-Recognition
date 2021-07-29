@@ -3,7 +3,7 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 from abc import ABCMeta, abstractmethod, ABC
-# from dbn.tensorflow import SupervisedDBNClassification
+# from dbn_libraries.tensorflow import SupervisedDBNClassification
 from mlxtend.plotting import plot_confusion_matrix
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
@@ -198,9 +198,9 @@ class BaseModel(metaclass=ABCMeta):
             sns.set(font_scale=1)  # for label size
             sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
                         yticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
                         xticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
 
         else:
 
