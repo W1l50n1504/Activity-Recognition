@@ -13,8 +13,9 @@ if __name__ == '__main__':
     X, Y = loadData()
 
     X = np.array(X).astype('float64')
-    Y = Y.values.tolist()
+    Y = np.array(Y.values)
 
+    Y = Y.flatten()
     # Splitting data
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
 
@@ -28,20 +29,26 @@ if __name__ == '__main__':
                                              activation_function='relu',
                                              dropout_p=0.2)
     classifier.fit(X_train, Y_train)
+    # Save the model
+    classifier.save('C:/Users/david/PycharmProjects/ActivityRecognition683127/com/checkpoint/DBN/model.pkl')
 
+    # Restore
+    classifier = SupervisedDBNClassification.load(
+        'C:/Users/david/PycharmProjects/ActivityRecognition683127/com/checkpoint/DBN/model.pkl')
     # Test
-    rounded_labels = np.argmax(Y_test, axis=1)
+    #    rounded_labels = np.argmax(Y_test, axis=1)
+    rounded_labels = Y_test
     y_pred = classifier.predict(X_test)
 
     print('round', rounded_labels.shape)
-    print('y', y_pred.shape)
+    # print('y', y_pred.shape)
 
     mat = confusion_matrix(rounded_labels, y_pred)
     plot_confusion_matrix(conf_mat=mat, show_normed=True, figsize=(10, 10))
 
     plt.figure(figsize=(10, 10))
     array = confusion_matrix(rounded_labels, y_pred)
-    df_cm = pd.DataFrame(array, range(6), range(6))
+    df_cm = pd.DataFrame(array, range(7), range(7))
 
     df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
     df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
