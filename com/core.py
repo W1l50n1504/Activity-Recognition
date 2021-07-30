@@ -170,12 +170,14 @@ class BaseModel(metaclass=ABCMeta):
     @abstractmethod
     def modelCreation(self):
         """:cvar"""
+        pass
 
     @abstractmethod
     def fit(self):
         """
         verrà implementato dai modelli
         """
+        pass
 
     def plot(self):
 
@@ -190,9 +192,9 @@ class BaseModel(metaclass=ABCMeta):
 
         plt.figure(figsize=(10, 10))
         array = confusion_matrix(rounded_labels, y_pred)
-        df_cm = pd.DataFrame(array, range(6), range(6))
 
         if self.dsConfig == 4:
+            df_cm = pd.DataFrame(array, range(6), range(6))
             df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
             df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
             sns.set(font_scale=1)  # for label size
@@ -203,7 +205,7 @@ class BaseModel(metaclass=ABCMeta):
                             "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
 
         else:
-
+            df_cm = pd.DataFrame(array, range(7), range(7))
             df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
             df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
             sns.set(font_scale=1)  # for label size
