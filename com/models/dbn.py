@@ -12,12 +12,17 @@ if __name__ == '__main__':
     # Loading dataset
     X, Y = loadData()
 
-    X = np.array(X).astype('float64')
-    Y = np.array(Y.values)
+    print(np.all(X))
 
+    X = np.array(X).astype('float64')
+    X = np.abs(X) + 1
+
+    print(np.all(X))
+
+    Y = np.array(Y.values)
     Y = Y.flatten()
     # Splitting data
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
     # Training
     classifier = SupervisedDBNClassification(hidden_layers_structure=[256, 256],
@@ -30,11 +35,11 @@ if __name__ == '__main__':
                                              dropout_p=0.2)
     classifier.fit(X_train, Y_train)
     # Save the model
-    classifier.save('C:/Users/david/PycharmProjects/ActivityRecognition683127/com/checkpoint/DBN/model.pkl')
+    classifier.save('C:/Users/david/PycharmProjects/ActivityRecognition683127/com/checkpoint/DBN/bestDBN.pkl')
 
     # Restore
     classifier = SupervisedDBNClassification.load(
-        'C:/Users/david/PycharmProjects/ActivityRecognition683127/com/checkpoint/DBN/model.pkl')
+        'C:/Users/david/PycharmProjects/ActivityRecognition683127/com/checkpoint/DBN/bestDBN.pkl')
     # Test
     #    rounded_labels = np.argmax(Y_test, axis=1)
     rounded_labels = Y_test
