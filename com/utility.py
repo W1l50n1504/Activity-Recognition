@@ -413,8 +413,6 @@ def loadKUHAR():
     Y_df = pd.DataFrame(columns=activity, dtype='int32')
     Y_label = []
 
-    # caricato il dataset levando ; che univa tutte le colonne
-
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[0], 'WALKING_DOWNSTAIRS')
 
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[1], 'JOGGING')
@@ -443,9 +441,7 @@ def loadKUHAR():
 
 
 def loadData():
-    # obiettivi, caricare i tre dataset,downsampling di ucihar da 50Hz a 20Hz, rimappare la label
-    # per unificarle e avere tutte le attivita' in sincrono
-
+    #carica i dati in memoria dei tre dataset
     print('Inizio caricamento dataset...')
 
     # carico UCIHAR

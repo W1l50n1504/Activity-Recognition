@@ -454,14 +454,14 @@ class NumPyAbstractSupervisedDBN(AbstractSupervisedDBN):
                 for rbm in self.unsupervised_dbn.rbm_layers:
                     # Updating parameters of hidden layers
                     rbm.W = (1 - (
-                        self.learning_rate * self.l2_regularization) / num_samples) * rbm.W - self.learning_rate * (
-                        accum_delta_W[layer] / self.batch_size)
+                            self.learning_rate * self.l2_regularization) / num_samples) * rbm.W - self.learning_rate * (
+                                    accum_delta_W[layer] / self.batch_size)
                     rbm.c -= self.learning_rate * (accum_delta_bias[layer] / self.batch_size)
                     layer += 1
                 # Updating parameters of output layer
                 self.W = (1 - (
-                    self.learning_rate * self.l2_regularization) / num_samples) * self.W - self.learning_rate * (
-                    accum_delta_W[layer] / self.batch_size)
+                        self.learning_rate * self.l2_regularization) / num_samples) * self.W - self.learning_rate * (
+                                 accum_delta_W[layer] / self.batch_size)
                 self.b -= self.learning_rate * (accum_delta_bias[layer] / self.batch_size)
 
             if self.verbose:

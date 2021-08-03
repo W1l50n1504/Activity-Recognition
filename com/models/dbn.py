@@ -11,7 +11,7 @@ class DeepBeliefNetwork(BaseModel, ABC):
 
     def dataProcessing(self):
         self.X = np.array(self.X).astype('float64')
-        self.X = np.abs(self.X) + 1
+        # self.X = np.abs(self.X) + 1
         self.y = np.array(self.y.values)
         self.y = self.y.flatten()
         # Splitting data
@@ -45,7 +45,7 @@ class DeepBeliefNetwork(BaseModel, ABC):
 
         y_pred = self.model.predict(self.X_test)
 
-        print('round', rounded_labels.shape)
+        # print('round', rounded_labels.shape)
         # print('y', y_pred.shape)
 
         mat = confusion_matrix(rounded_labels, y_pred)
@@ -72,8 +72,7 @@ class DeepBeliefNetwork(BaseModel, ABC):
         self.saveModel()
         self.plot()
 
+
 if __name__ == '__main__':
     dbn = DeepBeliefNetwork()
     dbn.main()
-    # Test
-
