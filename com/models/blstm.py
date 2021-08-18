@@ -37,10 +37,12 @@ class BLSTM(BaseModel, ABC):
 
     def fit(self):
         self.checkpoint = ModelCheckpoint(
-            checkPointPathBLSTM + '/best_model.hdf5', monitor='val_Accuracy', verbose=1, save_best_only=True,
+            checkPointPathBLSTM + '/best_model.hdf5', monitor='precision', verbose=1, save_best_only=True,
             mode='auto',
             period=1)
 
+        print(self.X_train.shape)
+        print(self.y_train.shape)
         self.history = self.model.fit(self.X_train, self.y_train, batch_size=16, epochs=self.epochs,
                                       validation_data=(self.X_val, self.y_val), verbose=1,
                                       callbacks=[self.checkpoint])
@@ -48,4 +50,4 @@ class BLSTM(BaseModel, ABC):
 
 if __name__ == '__main__':
     blstm = BLSTM()
-    # blstm.main()
+    blstm.main()

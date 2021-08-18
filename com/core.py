@@ -37,6 +37,11 @@ METRICS = [
 
 ]
 
+RANDOM_SEED = 42
+
+np.random.seed(RANDOM_SEED)
+tf.random.set_seed(RANDOM_SEED)
+
 
 class BaseModel(metaclass=ABCMeta):
 
@@ -53,7 +58,7 @@ class BaseModel(metaclass=ABCMeta):
         self.y_val = None
         self.history = None
         self.epochs = 10
-        self.dsConfig = 3
+        self.dsConfig = 0
 
         self.loadData()
         self.dataProcessing()
@@ -61,10 +66,11 @@ class BaseModel(metaclass=ABCMeta):
     def loadData(self):
         """:cvar"""
 
+        x1, y1 = loadUCIHAR()
+        x2, y2 = loadKUHAR()
+        x3, y3 = loadMotionSense()
+
         if self.dsConfig == 0:
-            x1, y1 = loadUCIHAR()
-            x2, y2 = loadKUHAR()
-            x3, y3 = loadMotionSense()
 
             x3 = np.array(x3)
             y3 = np.array(y3)
@@ -75,9 +81,6 @@ class BaseModel(metaclass=ABCMeta):
             self.y_test = y3
 
         elif self.dsConfig == 1:
-            x1, y1 = loadUCIHAR()
-            x2, y2 = loadKUHAR()
-            x3, y3 = loadMotionSense()
 
             x1 = np.array(x1)
             y1 = np.array(y1)
@@ -88,9 +91,6 @@ class BaseModel(metaclass=ABCMeta):
             self.y_test = y1
 
         elif self.dsConfig == 2:
-            x1, y1 = loadUCIHAR()
-            x2, y2 = loadKUHAR()
-            x3, y3 = loadMotionSense()
 
             y2 = np.array(y2)
             x2 = np.array(x2)
@@ -104,7 +104,7 @@ class BaseModel(metaclass=ABCMeta):
             self.X, self.y = loadData()
 
         elif self.dsConfig == 4:
-            self.X, self.y = loadUCIHAR()
+            self.X, self.y = loadMotionSense()
 
     def dataProcessing(self):
         """
@@ -129,7 +129,11 @@ class BaseModel(metaclass=ABCMeta):
         self.y_train = enc.transform(self.y_train)
         self.y_test = enc.transform(self.y_test)
         self.y_val = enc.transform(self.y_val)
-
+        """
+        self.y_train = np.array(self.y_train).reshape(-1, 1)
+        self.y_test = np.array(self.y_test).reshape(-1, 1)
+        self.y_val = np.array(self.y_val).reshape(-1, 1)
+        """
         print('dimensione reshape', self.X_train[..., np.newaxis].shape)
         print('dimensione reshape', self.X_test[..., np.newaxis].shape)
         print('dimensione reshape', self.X_val[..., np.newaxis].shape)
@@ -159,11 +163,21 @@ class BaseModel(metaclass=ABCMeta):
             self.X_val = self.X_val.reshape(2323, 12, 1)
 
         elif self.dsConfig == 4:
-            # prova per vedere il numero di feature necessarie per classificare bene
+            """
+            # UCIHAR y_train.shape = 6
             self.X_train = self.X_train.reshape(6488, 12, 1)
             self.X_test = self.X_test.reshape(3090, 12, 1)
             self.X_val = self.X_val.reshape(721, 12, 1)
-
+            
+            # KUHAR y_train.shape = 5
+            self.X_train = self.X_train.reshape(6354, 12, 1)
+            self.X_test = self.X_test.reshape(3027, 12, 1)
+            self.X_val = self.X_val.reshape(706, 12, 1)
+            """
+            # MotionSense y_train.shape = 5
+            self.X_train = self.X_train.reshape(8057, 12, 1)
+            self.X_test = self.X_test.reshape(3838, 12, 1)
+            self.X_val = self.X_val.reshape(896, 12, 1)
         print('Fine elaborazione dati.')
         self.y = np.array(self.y)
 
@@ -193,7 +207,50 @@ class BaseModel(metaclass=ABCMeta):
         plt.figure(figsize=(10, 10))
         array = confusion_matrix(rounded_labels, y_pred)
 
-        if self.dsConfig == 4:
+        if self.dsConfig == 0:
+            df_cm = pd.DataFrame(array, range(6), range(6))
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            sns.set(font_scale=1)  # for label size
+            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
+                        yticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                        xticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
+
+        elif self.dsConfig == 1:
+            df_cm = pd.DataFrame(array, range(6), range(6))
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting"]
+            sns.set(font_scale=1)  # for label size
+            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
+                        yticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                        xticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
+
+        elif self.dsConfig == 2:
+            df_cm = pd.DataFrame(array, range(6), range(6))
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            sns.set(font_scale=1)  # for label size
+            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
+                        yticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                        xticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
+        elif self.dsConfig == 3:
+            df_cm = pd.DataFrame(array, range(6), range(6))
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            sns.set(font_scale=1)  # for label size
+            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
+                        yticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                        xticklabels=(
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
+
+        elif self.dsConfig == 4:
             df_cm = pd.DataFrame(array, range(6), range(6))
             df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
             df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
