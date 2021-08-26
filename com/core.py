@@ -58,7 +58,7 @@ class BaseModel(metaclass=ABCMeta):
         self.y_val = None
         self.history = None
         self.epochs = 30
-        self.dsConfig = 1
+        self.dsConfig = 4
 
         self.loadData()
         self.dataProcessing()
@@ -104,7 +104,7 @@ class BaseModel(metaclass=ABCMeta):
             self.X, self.y = loadData()
 
         elif self.dsConfig == 4:
-            self.X, self.y = loadMotionSense()
+            self.X, self.y = loadKUHAR()
 
     def dataProcessing(self):
         """

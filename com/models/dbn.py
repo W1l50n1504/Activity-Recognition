@@ -26,10 +26,10 @@ class DeepBeliefNetwork(BaseModel, ABC):
                                                                                 random_state=42)
 
     def modelCreation(self):
-        self.model = SupervisedDBNClassification(hidden_layers_structure=[1024, 1024    ],
+        self.model = SupervisedDBNClassification(hidden_layers_structure=[1024, 1024],
                                                  learning_rate_rbm=0.05,
                                                  learning_rate=0.1,
-                                                 n_epochs_rbm=10,
+                                                 n_epochs_rbm=self.epochs,
                                                  n_iter_backprop=100,
                                                  batch_size=32,
                                                  activation_function='relu',
