@@ -123,13 +123,7 @@ TrainingValAucBLSTM = absPath_ + '/graphs/blstm/trainingValAucBLSTM.png'
 ModelLossBLSTM = absPath_ + '/graphs/blstm/modelLossBLSTM.png'
 
 # dizionari riguardanti le attività registrate dai dataset
-labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
-
-labelDictMotionSense = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'STANDING': 4,
-                        'LAYING': 6}
-
-labelDictKUHAR = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'STANDING': 4,
-                  'LAYING': 5}
+labelDict = {'WALKING': 1, 'WALKING_UPSTAIRS': 2, 'WALKING_DOWNSTAIRS': 3, 'SITTING': 4, 'STANDING': 5, 'LAYING': 6}
 
 
 # funzioni utili per il caricamento di UCIHAR dataset
@@ -282,7 +276,7 @@ def loadNmergeMS(X_df, Y_df, path, label):
     X_df = X_df.reset_index(drop=True)
 
     for i in range(len(Y_df), len(X_df)):
-        Y_df.append(labelDictMotionSense[label])
+        Y_df.append(labelDict[label])
 
     return X_df, Y_df
 
@@ -332,7 +326,9 @@ def loadNmergeKU(X_df, Y_df, path, label):
     X_df = X_df.reset_index(drop=True)
 
     for i in range(len(Y_df), len(X_df)):
-        Y_df.append(labelDictKUHAR[label])
+        Y_df.append(labelDict[label])
+
+    print(X_df)
 
     return X_df, Y_df
 
@@ -413,23 +409,39 @@ def loadKUHAR():
     # dataset finali che conterranno i dati per come ci servono
     X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
     Y_df = pd.DataFrame(columns=activity, dtype='int32')
+
     Y_label = []
 
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[0], 'STANDING')
 
+    print(set(Y_label)) # 5
+
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[1], 'SITTING')
+
+    print(set(Y_label)) # 4 5
 
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[2], 'LAYING')
 
+    print(set(Y_label)) # 4 5
+
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[3], 'WALKING')
+
+    print(set(Y_label))
 
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[4], 'WALKING_UPSTAIRS')
 
+    print(set(Y_label))
+
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[5], 'WALKING_DOWNSTAIRS')
 
-    yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
+    print(set(Y_label))
 
+    yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
     X_df['Activity'] = yTemp['Activity']
+
+    t = yTemp.groupby('Activity')
+    print(t.first())
+
     X_df.dropna(subset=[xAngle, yAngle, zAngle], inplace=True)
 
     Y_df = pd.DataFrame(columns=activity, dtype='int64')
@@ -486,4 +498,5 @@ def loadSavedData():
 
 if __name__ == '__main__':
     x, y = loadKUHAR()
-    print(x.columns)
+    t = y.groupby('Activity')
+    print(t.first())
