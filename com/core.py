@@ -57,8 +57,8 @@ class BaseModel(metaclass=ABCMeta):
         self.X_val = None
         self.y_val = None
         self.history = None
-        self.epochs = 10
-        self.dsConfig = 0
+        self.epochs = 30
+        self.dsConfig = 1
 
         self.loadData()
         self.dataProcessing()
@@ -71,7 +71,7 @@ class BaseModel(metaclass=ABCMeta):
         x3, y3 = loadMotionSense()
 
         if self.dsConfig == 0:
-
+            # train uci + ku test motion
             x3 = np.array(x3)
             y3 = np.array(y3)
 
@@ -81,7 +81,7 @@ class BaseModel(metaclass=ABCMeta):
             self.y_test = y3
 
         elif self.dsConfig == 1:
-
+            # train ku + motion test uci
             x1 = np.array(x1)
             y1 = np.array(y1)
 
@@ -91,7 +91,7 @@ class BaseModel(metaclass=ABCMeta):
             self.y_test = y1
 
         elif self.dsConfig == 2:
-
+            # train uci + motion test ku
             y2 = np.array(y2)
             x2 = np.array(x2)
 
@@ -140,9 +140,9 @@ class BaseModel(metaclass=ABCMeta):
 
         if self.dsConfig == 0:
             # valori da utilizzare se si utilizza UCIHAR e KUHAR
-            self.X_train = self.X_train.reshape(18347, 12, 1)
-            self.X_test = self.X_test.reshape(12791, 12, 1)
-            self.X_val = self.X_val.reshape(2039, 12, 1)
+            self.X_train = self.X_train.reshape(11991, 12, 1)
+            self.X_test = self.X_test.reshape(5414, 12, 1)
+            self.X_val = self.X_val.reshape(1333, 12, 1)
 
         elif self.dsConfig == 1:
             # MotionSense KUHAR
@@ -163,21 +163,24 @@ class BaseModel(metaclass=ABCMeta):
             self.X_val = self.X_val.reshape(2323, 12, 1)
 
         elif self.dsConfig == 4:
-            """
+
             # UCIHAR y_train.shape = 6
             self.X_train = self.X_train.reshape(6488, 12, 1)
             self.X_test = self.X_test.reshape(3090, 12, 1)
             self.X_val = self.X_val.reshape(721, 12, 1)
-            
-            # KUHAR y_train.shape = 5
-            self.X_train = self.X_train.reshape(6354, 12, 1)
-            self.X_test = self.X_test.reshape(3027, 12, 1)
-            self.X_val = self.X_val.reshape(706, 12, 1)
             """
+     
+            
             # MotionSense y_train.shape = 5
-            self.X_train = self.X_train.reshape(8057, 12, 1)
-            self.X_test = self.X_test.reshape(3838, 12, 1)
-            self.X_val = self.X_val.reshape(896, 12, 1)
+            self.X_train = self.X_train.reshape(7423, 12, 1)
+            self.X_test = self.X_test.reshape(3536, 12, 1)
+            self.X_val = self.X_val.reshape(825, 12, 1)
+                        # KUHAR y_train.shape = 5
+            self.X_train = self.X_train.reshape(5207, 12, 1)
+            self.X_test = self.X_test.reshape(2480, 12, 1)
+            self.X_val = self.X_val.reshape(579, 12, 1)
+            """
+
         print('Fine elaborazione dati.')
         self.y = np.array(self.y)
 
@@ -198,8 +201,11 @@ class BaseModel(metaclass=ABCMeta):
         rounded_labels = np.argmax(self.y_test, axis=1)
         y_pred = self.model.predict_classes(self.X_test)
 
-        print('round', rounded_labels.shape)
-        print('y', y_pred.shape)
+        mat = confusion_matrix(rounded_labels, y_pred)
+        plot_confusion_matrix(conf_mat=mat, show_normed=True, figsize=(10, 10))
+
+        plt.figure(figsize=(10, 10))
+        array = confusion_matrix(rounded_labels, y_pred)
 
         mat = confusion_matrix(rounded_labels, y_pred)
         plot_confusion_matrix(conf_mat=mat, show_normed=True, figsize=(10, 10))
@@ -207,72 +213,31 @@ class BaseModel(metaclass=ABCMeta):
         plt.figure(figsize=(10, 10))
         array = confusion_matrix(rounded_labels, y_pred)
 
-        if self.dsConfig == 0:
-            df_cm = pd.DataFrame(array, range(6), range(6))
-            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-            sns.set(font_scale=1)  # for label size
-            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                        yticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
-                        xticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
+        if self.dsConfig == 4:
 
-        elif self.dsConfig == 1:
             df_cm = pd.DataFrame(array, range(6), range(6))
-            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting"]
-            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting"]
-            sns.set(font_scale=1)  # for label size
-            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                        yticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
-                        xticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
 
-        elif self.dsConfig == 2:
-            df_cm = pd.DataFrame(array, range(6), range(6))
-            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
             sns.set(font_scale=1)  # for label size
             sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                        yticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
-                        xticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
-        elif self.dsConfig == 3:
-            df_cm = pd.DataFrame(array, range(6), range(6))
-            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-            sns.set(font_scale=1)  # for label size
-            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                        yticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
-                        xticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
-
-        elif self.dsConfig == 4:
-            df_cm = pd.DataFrame(array, range(6), range(6))
-            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-            sns.set(font_scale=1)  # for label size
-            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                        yticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
-                        xticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
+                        yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                        xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
 
         else:
             df_cm = pd.DataFrame(array, range(7), range(7))
             df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
             df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
+
             sns.set(font_scale=1)  # for label size
             sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
                         yticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
+                        "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
                         xticklabels=(
-                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
+                        "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
 
         plt.show()
+
         # Plot training & validation accuracy values
         plt.figure(figsize=(15, 8))
         epoch_range = range(1, self.epochs + 1)
@@ -312,4 +277,3 @@ class BaseModel(metaclass=ABCMeta):
         self.modelCreation()
         self.fit()
         self.plot()
-        # playsound('C:/Users/david/Downloads/ding-sound-effect/Ding-sound-effect.mp3')

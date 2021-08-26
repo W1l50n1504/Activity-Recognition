@@ -14,8 +14,9 @@ class DeepBeliefNetwork(BaseModel, ABC):
 
     def dataProcessing(self):
         # elaborazione dei dati nel formato utile al funzionamento del dbn con conseguente separazione in train and test data
+
+        self.X = np.abs(self.X) + self.X.mean()
         self.X = np.array(self.X).astype('float64')
-        self.X = np.abs(self.X) + 1
 
         self.y = np.array(self.y.values)
         self.y = self.y.flatten()
@@ -25,14 +26,14 @@ class DeepBeliefNetwork(BaseModel, ABC):
                                                                                 random_state=42)
 
     def modelCreation(self):
-        self.model = SupervisedDBNClassification(hidden_layers_structure=[256, 256],
+        self.model = SupervisedDBNClassification(hidden_layers_structure=[1024, 1024    ],
                                                  learning_rate_rbm=0.05,
                                                  learning_rate=0.1,
-                                                 n_epochs_rbm=self.epochs,
+                                                 n_epochs_rbm=10,
                                                  n_iter_backprop=100,
                                                  batch_size=32,
                                                  activation_function='relu',
-                                                 dropout_p=0.2)
+                                                 dropout_p=0.02)
 
     def fit(self):
         self.history = self.model.fit(self.X_train, self.y_train)
@@ -51,31 +52,41 @@ class DeepBeliefNetwork(BaseModel, ABC):
 
         y_pred = self.model.predict(self.X_test)
 
-        # print('round', rounded_labels.shape)
-        # print('y', y_pred.shape)
-
         mat = confusion_matrix(rounded_labels, y_pred)
         plot_confusion_matrix(conf_mat=mat, show_normed=True, figsize=(10, 10))
 
         plt.figure(figsize=(10, 10))
         array = confusion_matrix(rounded_labels, y_pred)
-        df_cm = pd.DataFrame(array, range(5), range(5))
 
-        df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing"]#, "Laying", "Jogging"]
-        df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing"]#, "Laying", "Jogging"]
-        sns.set(font_scale=1)  # for label size
-        sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                    yticklabels=(
-                        "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),  # , "Jogging"),
-                    xticklabels=(
-                        "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))  # , "Jogging"))
+        if self.dsConfig == 4:
+
+            df_cm = pd.DataFrame(array, range(6), range(6))
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+
+            sns.set(font_scale=1)  # for label size
+            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
+                        yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                        xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
+
+        else:
+            df_cm = pd.DataFrame(array, range(7), range(7))
+            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
+            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
+
+            sns.set(font_scale=1)  # for label size
+            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
+                        yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
+                        xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
 
         plt.show()
+
 
     def main(self):
         self.modelCreation()
         self.fit()
         self.saveModel()
+        # self.loadModel()
         self.plot()
 
 

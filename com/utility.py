@@ -40,7 +40,7 @@ magUCIacc = 'magnitudeAcc'
 xUCIgyro = 'tBodyGyro-mean()-X'
 yUCIgyro = 'tBodyGyro-mean()-Y'
 zUCIgyro = 'tBodyGyro-mean()-Z'
-magUCIgyro = 'magnitudeGyro'
+# magUCIgyro = 'magnitudeGyro'
 
 # MotionSense dataset data & labels
 
@@ -48,11 +48,12 @@ motionPath = absPath_ + '/dataset/MotionSense/'
 
 dws = 'dws/sub_1.csv'
 jog = 'jog/sub_1.csv'
-sit = 'sit/sub_1.csv'
-ups = 'ups/sub_1.csv'
+sitt = 'sit/sub_1.csv'
+upss = 'ups/sub_1.csv'
 wlk = 'wlk/sub_1.csv'
+std = 'std/sub_1.csv'
 
-activityListMotionSense = [dws, jog, sit, ups, wlk]
+activityListMotionSense = [dws, jog, sitt, upss, wlk, std]
 
 xMSacc = 'userAcceleration.x'
 yMSacc = 'userAcceleration.y'
@@ -68,11 +69,10 @@ stand = '0.Stand/1001_A_1.csv'
 sit = '1.Sit/1001_B_1.csv'
 lay = '5.Lay/1001_F_1.csv'
 walk = '11.Walk/1002_L_1.csv'
-run = '14.Run/1002_O_1.csv'
 ups = '15.Stair-up/1002_S_1.csv'
 downs = '16.Stair-down/1002_T_1.csv'
 
-activityListKUHAR = [stand, sit, lay, walk, run, ups, downs]
+activityListKUHAR = [stand, sit, lay, walk, ups, downs]
 
 time1 = 'time1'
 xKUacc = 'userAcceleration.x'
@@ -125,7 +125,11 @@ ModelLossBLSTM = absPath_ + '/graphs/blstm/modelLossBLSTM.png'
 # dizionari riguardanti le attività registrate dai dataset
 labelDictUCI = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'STANDING': 4, 'LAYING': 5}
 
-labelDictMotionSense = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'JOGGING': 6}
+labelDictMotionSense = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'STANDING': 4,
+                        'LAYING': 6}
+
+labelDictKUHAR = {'WALKING': 0, 'WALKING_UPSTAIRS': 1, 'WALKING_DOWNSTAIRS': 2, 'SITTING': 3, 'STANDING': 4,
+                  'LAYING': 5}
 
 
 # funzioni utili per il caricamento di UCIHAR dataset
@@ -246,26 +250,26 @@ def loadNmergeMS(X_df, Y_df, path, label):
 
     finalDf = pd.DataFrame(columns=finalColumns, dtype='float64')
 
-    dfMagnitude = pd.DataFrame(columns=['magXY', 'magYZ', 'magXZ'], dtype='float32')
+    dfMagnitude = pd.DataFrame(columns=['magXY', 'magYZ', 'magXZ'], dtype='float64')
 
-    dfArcsin = pd.DataFrame(columns=['arcsinx', 'arcsiny', 'arcsinz'], dtype='float32')
+    dfArcsin = pd.DataFrame(columns=['arcsinx', 'arcsiny', 'arcsinz'], dtype='float64')
 
     finalDf[xacc] = df[xMSacc]
     finalDf[yacc] = df[yMSacc]
     finalDf[zacc] = df[zMSacc]
     finalDf[magacc] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
 
-    dfMagnitude['magXY'] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2))
-    dfMagnitude['magYZ'] = np.sqrt((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
-    dfMagnitude['magXZ'] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[zacc] ** 2))
+    dfMagnitude['magXY'] = normalizeData(np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2))))
+    dfMagnitude['magYZ'] = normalizeData(np.sqrt(np.abs((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))))
+    dfMagnitude['magXZ'] = normalizeData(np.sqrt(np.abs((finalDf[zacc] ** 2) + (finalDf[zacc] ** 2))))
 
-    dfArcsin['arcsinx'] = dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[yacc])))
-    dfArcsin['arcsiny'] = dfMagnitude['magYZ'] / (np.sqrt(np.abs(finalDf[yacc])) * np.sqrt(np.abs(finalDf[zacc])))
-    dfArcsin['arcsinz'] = dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[zacc])))
+    dfArcsin['arcsinx'] = normalizeData(finalDf[xacc] / np.sqrt(finalDf[magacc]))
+    dfArcsin['arcsiny'] = normalizeData(finalDf[yacc] / np.sqrt(finalDf[magacc]))
+    dfArcsin['arcsinz'] = normalizeData(finalDf[zacc] / np.sqrt(finalDf[magacc]))
 
-    finalDf[xAngle] = np.arcsin((dfArcsin['arcsinx'] - dfArcsin['arcsinx'].mean()) / dfArcsin['arcsinx'].std())
-    finalDf[yAngle] = np.arcsin((dfArcsin['arcsiny'] - dfArcsin['arcsiny'].mean()) / dfArcsin['arcsiny'].std())
-    finalDf[zAngle] = np.arcsin((dfArcsin['arcsinz'] - dfArcsin['arcsinz'].mean()) / dfArcsin['arcsinz'].std())
+    finalDf[xAngle] = np.arcsin(dfArcsin['arcsinx'])
+    finalDf[yAngle] = np.arcsin(dfArcsin['arcsiny'])
+    finalDf[zAngle] = np.arcsin(dfArcsin['arcsinz'])
 
     finalDf[xgyro] = df[xMSgyro]
     finalDf[ygyro] = df[yMSgyro]
@@ -276,9 +280,6 @@ def loadNmergeMS(X_df, Y_df, path, label):
 
     X_df = pd.concat([X_df, finalDf])
     X_df = X_df.reset_index(drop=True)
-
-    # per qualche strano motivo alcuni valori calcolati dall'arcsin risultano essere NaN anche se i dati vengono normalizzati tra -1 e 1
-    # come "soluzione" ho deciso di eliminare tutte le righe che presentano NaN come valore
 
     for i in range(len(Y_df), len(X_df)):
         Y_df.append(labelDictMotionSense[label])
@@ -305,21 +306,16 @@ def loadNmergeKU(X_df, Y_df, path, label):
     finalDf[xacc] = df[xKUacc]
     finalDf[yacc] = df[yKUacc]
     finalDf[zacc] = df[zKUacc]
-
     finalDf[magacc] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
 
-    dfMagnitude['magXY'] = normalizeData(np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2))))
-    dfMagnitude['magYZ'] = normalizeData(np.sqrt(np.abs((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))))
-    dfMagnitude['magXZ'] = normalizeData(np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[zacc] ** 2))))
+    dfMagnitude['magXY'] = np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2)))
+    dfMagnitude['magYZ'] = np.sqrt(np.abs((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2)))
+    dfMagnitude['magXZ'] = np.sqrt(np.abs((finalDf[zacc] ** 2) + (finalDf[zacc] ** 2)))
 
-    dfArcsin['arcsinx'] = normalizeData(
-        dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[yacc]))))
-    dfArcsin['arcsiny'] = normalizeData(
-        dfMagnitude['magYZ'] / (np.sqrt(np.abs(finalDf[yacc])) * np.sqrt(np.abs(finalDf[zacc]))))
-    dfArcsin['arcsinz'] = normalizeData(
-        dfMagnitude['magXY'] / (np.sqrt(np.abs(finalDf[xacc])) * np.sqrt(np.abs(finalDf[zacc]))))
-
-    # nonostante la normalizzazione dei valori tra -1 e 1 continuo ad ottenere (molto meno) NaN, cerca modi per eliminare tali valori
+    # angolo = arcsin(y/radquadra(magnitudine))
+    dfArcsin['arcsinx'] = normalizeData(finalDf[xacc] / np.sqrt(finalDf[magacc]))
+    dfArcsin['arcsiny'] = normalizeData(finalDf[yacc] / np.sqrt(finalDf[magacc]))
+    dfArcsin['arcsinz'] = normalizeData(finalDf[zacc] / np.sqrt(finalDf[magacc]))
 
     finalDf[xAngle] = np.arcsin(dfArcsin['arcsinx'])
     finalDf[yAngle] = np.arcsin(dfArcsin['arcsiny'])
@@ -336,7 +332,7 @@ def loadNmergeKU(X_df, Y_df, path, label):
     X_df = X_df.reset_index(drop=True)
 
     for i in range(len(Y_df), len(X_df)):
-        Y_df.append(labelDictMotionSense[label])
+        Y_df.append(labelDictKUHAR[label])
 
     return X_df, Y_df
 
@@ -384,7 +380,7 @@ def loadMotionSense():
 
     X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[0], 'WALKING_DOWNSTAIRS')
 
-    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[1], 'JOGGING')
+    # X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[1], 'LAYING') #in realta' si tratta di jogging, controllare se esiste
 
     X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[2], 'SITTING')
 
@@ -392,9 +388,13 @@ def loadMotionSense():
 
     X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[4], 'WALKING')
 
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[5], 'STANDING')
+
     yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
 
+    # per qualche motivo droppa intere categorie e si perdono dei dati riguardanti le attività 3 e 4
     X_df['Activity'] = yTemp['Activity']
+
     X_df.dropna(subset=[xAngle, yAngle, zAngle], inplace=True)
 
     Y_df = pd.DataFrame(columns=activity, dtype='int64')
@@ -403,6 +403,8 @@ def loadMotionSense():
 
     X_df = X_df.reset_index(drop=True)
     Y_df = Y_df.reset_index(drop=True)
+
+    X_df, Y_df = reduceSample(X_df, Y_df)
 
     return X_df.copy(), Y_df.copy()
 
@@ -413,15 +415,17 @@ def loadKUHAR():
     Y_df = pd.DataFrame(columns=activity, dtype='int32')
     Y_label = []
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[0], 'WALKING_DOWNSTAIRS')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[0], 'STANDING')
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[1], 'JOGGING')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[1], 'SITTING')
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[2], 'SITTING')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[2], 'LAYING')
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[3], 'WALKING_UPSTAIRS')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[3], 'WALKING')
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[4], 'WALKING')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[4], 'WALKING_UPSTAIRS')
+
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[5], 'WALKING_DOWNSTAIRS')
 
     yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
 
@@ -441,7 +445,7 @@ def loadKUHAR():
 
 
 def loadData():
-    #carica i dati in memoria dei tre dataset
+    # carica i dati in memoria dei tre dataset
     print('Inizio caricamento dataset...')
 
     # carico UCIHAR
@@ -480,12 +484,6 @@ def loadSavedData():
     return x, y
 
 
-"""
-    for i in range(0, len(finalColumns)):
-    print(finalColumns[i], '\n', x[finalColumns[i]].isnull().sum().sum())
-"""
-
 if __name__ == '__main__':
-    x, y = loadData()
-    print(x, '/n', y)
-    saveData(x, y)
+    x, y = loadKUHAR()
+    print(x.columns)
