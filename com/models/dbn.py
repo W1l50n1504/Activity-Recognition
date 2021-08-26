@@ -29,8 +29,8 @@ class DeepBeliefNetwork(BaseModel, ABC):
         self.model = SupervisedDBNClassification(hidden_layers_structure=[1024, 1024],
                                                  learning_rate_rbm=0.05,
                                                  learning_rate=0.1,
-                                                 n_epochs_rbm=self.epochs,
-                                                 n_iter_backprop=100,
+                                                 n_epochs_rbm=10,
+                                                 n_iter_backprop=self.epochs,
                                                  batch_size=32,
                                                  activation_function='relu',
                                                  dropout_p=0.02)

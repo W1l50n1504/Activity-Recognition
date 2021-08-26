@@ -57,7 +57,7 @@ class BaseModel(metaclass=ABCMeta):
         self.X_val = None
         self.y_val = None
         self.history = None
-        self.epochs = 30
+        self.epochs = 100
         self.dsConfig = 4
 
         self.loadData()
