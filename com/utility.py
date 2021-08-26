@@ -328,8 +328,6 @@ def loadNmergeKU(X_df, Y_df, path, label):
     for i in range(len(Y_df), len(X_df)):
         Y_df.append(labelDict[label])
 
-    print(X_df)
-
     return X_df, Y_df
 
 
@@ -414,34 +412,18 @@ def loadKUHAR():
 
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[0], 'STANDING')
 
-    print(set(Y_label)) # 5
-
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[1], 'SITTING')
-
-    print(set(Y_label)) # 4 5
 
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[2], 'LAYING')
 
-    print(set(Y_label)) # 4 5
-
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[3], 'WALKING')
-
-    print(set(Y_label))
 
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[4], 'WALKING_UPSTAIRS')
 
-    print(set(Y_label))
-
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[5], 'WALKING_DOWNSTAIRS')
-
-    print(set(Y_label))
 
     yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
     X_df['Activity'] = yTemp['Activity']
-
-    t = yTemp.groupby('Activity')
-    print(t.first())
-
     X_df.dropna(subset=[xAngle, yAngle, zAngle], inplace=True)
 
     Y_df = pd.DataFrame(columns=activity, dtype='int64')
@@ -497,6 +479,6 @@ def loadSavedData():
 
 
 if __name__ == '__main__':
-    x, y = loadKUHAR()
+    x, y = loadMotionSense()
     t = y.groupby('Activity')
     print(t.first())
