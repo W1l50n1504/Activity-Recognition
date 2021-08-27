@@ -40,14 +40,13 @@ class DeepBeliefNetwork(BaseModel, ABC):
         self.saveModel()
 
     def saveModel(self):
-        self.model.save('C:/Users/david/PycharmProjects/ActivityRecognition683127/com/checkpoint/DBN/bestDBN.pkl')
+        self.model.save('C:/Users/david/PycharmProjects/Activity-Recognition/com/checkpoint/DBN/bestDBN.pkl')
 
     def loadModel(self):
         self.model = SupervisedDBNClassification.load(
-            'C:/Users/david/PycharmProjects/ActivityRecognition683127/com/checkpoint/DBN/bestDBN.pkl')
+            'C:/Users/david/PycharmProjects/Activity-Recognition/com/checkpoint/DBN/bestDBN.pkl')
 
     def plot(self):
-        plottingLabels = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
 
         y_pred = self.model.predict(self.X_test)
 

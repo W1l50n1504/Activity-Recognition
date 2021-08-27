@@ -9,8 +9,9 @@ import seaborn as sns
 from sklearn.utils import resample
 
 # absPath_ = os.getcwd()
-absPath_ = 'C:/Users/david/PycharmProjects/ActivityRecognition683127/com'
-# absPath_ = '/home/w1l50n/PycharmProjects/ActivityRecognition683127/com'
+absPath_ = 'C:/Users/david/PycharmProjects/Activity-Recognition/com'
+# absPath_ = '/home/w1l50n/PycharmProjects/Activity-Recognition/com'
+
 # percorso che contiene tutti i dati precaricati, in modo da evitare di dover ricalcolarli tutti ogni volta
 xPath = absPath_ + '/dataset/DataProcessed/xData.csv'
 yPath = absPath_ + '/dataset/DataProcessed/yData.csv'
