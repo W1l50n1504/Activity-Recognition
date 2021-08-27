@@ -47,46 +47,32 @@ class DeepBeliefNetwork(BaseModel, ABC):
             'C:/Users/david/PycharmProjects/ActivityRecognition683127/com/checkpoint/DBN/bestDBN.pkl')
 
     def plot(self):
-        rounded_labels = self.y_test
-        # rounded_labels = np.argmax(Y_test, axis=1)
+        plottingLabels = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
 
         y_pred = self.model.predict(self.X_test)
 
-        mat = confusion_matrix(rounded_labels, y_pred)
+        mat = confusion_matrix(self.y_test, y_pred)
         plot_confusion_matrix(conf_mat=mat, show_normed=True, figsize=(10, 10))
 
         plt.figure(figsize=(10, 10))
-        array = confusion_matrix(rounded_labels, y_pred)
+        array = confusion_matrix(self.y_test, y_pred)
 
-        if self.dsConfig == 4:
+        df_cm = pd.DataFrame(array, range(6), range(6))
+        df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
+        df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
 
-            df_cm = pd.DataFrame(array, range(6), range(6))
-            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"]
-
-            sns.set(font_scale=1)  # for label size
-            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                        yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
-                        xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
-
-        else:
-            df_cm = pd.DataFrame(array, range(7), range(7))
-            df_cm.columns = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
-            df_cm.index = ["Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"]
-
-            sns.set(font_scale=1)  # for label size
-            sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
-                        yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
-                        xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
+        sns.set(font_scale=1)  # for label size
+        sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
+                    yticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"),
+                    xticklabels=("Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying"))
 
         plt.show()
 
-
     def main(self):
-        self.modelCreation()
-        self.fit()
-        self.saveModel()
-        # self.loadModel()
+        # self.modelCreation()
+        # self.fit()
+        # self.saveModel()
+        self.loadModel()
         self.plot()
 
 
