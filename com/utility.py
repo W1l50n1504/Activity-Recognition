@@ -13,8 +13,8 @@ absPath_ = 'C:/Users/david/PycharmProjects/Activity-Recognition/com'
 # absPath_ = '/home/w1l50n/PycharmProjects/Activity-Recognition/com'
 
 # percorso che contiene tutti i dati precaricati, in modo da evitare di dover ricalcolarli tutti ogni volta
-xPath = absPath_ + '/dataset/DataProcessed/xData.csv'
-yPath = absPath_ + '/dataset/DataProcessed/yData.csv'
+xPath = absPath_ + '/dataset/ShieldApp/xData.csv'
+yPath = absPath_ + '/dataset/ShieldApp/yData.csv'
 
 # etichetta dataset
 activity = ['Activity']
@@ -464,13 +464,13 @@ def loadData():
 
 
 def saveData(X, Y):
-    print('Salvataggio dati in DataProcessed...')
+    print('Salvataggio dati in ShieldApp...')
     X.to_csv(xPath, index=False)
     Y.to_csv(yPath, index=False)
 
 
 def loadSavedData():
-    print('Caricamento dati da DataProcessed...')
+    print('Caricamento dati da ShieldApp...')
     x = pd.read_csv(xPath)
     y = pd.read_csv(yPath)
 
