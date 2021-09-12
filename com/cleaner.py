@@ -9,6 +9,8 @@ accel = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldA
 gyro = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/data/gyro.csv'
 accelMod = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/data/accel_modificato.csv'
 gyroMod = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/data/gyro_modificato.csv'
+# x,y,z,canc,data,ora
+cols2 = ['x', 'y', 'z', 'canc', 'data', 'ora']
 
 
 def clear(sensor):
@@ -40,28 +42,57 @@ def clear(sensor):
 
 def puliziaSensore(sensore, save):
     columns1 = ['x', 'y', 'z', 'ora']
-    # clear()
-
     df = pd.read_csv(sensore, sep=' |,', engine='python')  # , dtype='float64')
 
     print(df)
     ded = pd.DataFrame(columns=columns1)
 
-    ded['x'] = df['x']
+    ded['x'] = df['x'].replace({'"': ''}, regex=True)
     ded['y'] = df['y']
     ded['z'] = df['z']
-    ded['ora'] = df['ora']
-    ded['x'] = ded['x'].replace({'"': ''}, regex=True)
-    ded['ora'] = ded['ora'].replace({'"': ''}, regex=True)
+    ded['ora'] = df['ora'].replace({'"': ''}, regex=True)
+
     print(ded)
     ded.to_csv(save, index=False)
 
 
+def join():
+    columns = ['xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro']
+    #fixa walk rifai
+    accdata = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/activity/laying/sub1_acc.csv"
+    gyrodata = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/activity/laying/sub1_gyro.csv"
+    final = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/activity/laying/sub3.csv"
+
+    acc = pd.read_csv(accdata)
+    gyro = pd.read_csv(gyrodata)
+
+    print(acc)
+    print(gyro)
+
+    finaldf = pd.concat([acc, gyro], axis=1).reindex(acc.index)
+    finaldf = finaldf.dropna()
+
+    finaldf = finaldf.drop(finaldf['ora'], axis=1)
+    print(finaldf)
+
+    finaldf.to_csv(final, index=None)
+
+
 if __name__ == '__main__':
+    #clear(sensor3)
 
-    accele = pd.read_csv(accelMod)
-    gyros = pd.read_csv(gyroMod)
+    #puliziaSensore(accel, accelMod)
+    #puliziaSensore(gyro, gyroMod)
+    #accele = pd.read_csv(accelMod)
+    #gyros = pd.read_csv(gyroMod)
 
+    # ordinare i dati per l'orario di cattura
+    #accele = accele.sort_values(by='ora')
+    #accele.to_csv(accelMod, index=False)
+    #gyros = gyros.sort_values(by='ora')
+    #gyros.to_csv(gyroMod, index=False)
 
-    print(accele)
-    print(gyros)
+    # print(accele)
+    # print(gyros)
+    join()
+
