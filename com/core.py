@@ -21,19 +21,12 @@ gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 for device in gpu_devices:
     tf.config.experimental.set_memory_growth(device, True)
 
-# import required module
-from playsound import playsound
-
-# in f1score cambia il numero di classes se cambi il numero di dataset che carichi, se si tratta solo di UCIHAR
-# metti 6, 7 negli altri casi
-
 METRICS = [
     tf.keras.metrics.Accuracy(name="Accuracy"),
     tf.keras.metrics.Precision(name="precision"),
     tf.keras.metrics.Recall(name="recall"),
     tfa.metrics.F1Score(num_classes=6, threshold=0.5),
     tf.keras.metrics.AUC(name="auc")
-    # tf.keras.metrics.BinaryAccuracy(name="binaryAcc"),
 
 ]
 
@@ -58,7 +51,7 @@ class BaseModel(metaclass=ABCMeta):
         self.y_val = None
         self.history = None
         self.epochs = 100
-        self.dsConfig = 3
+        self.dsConfig = 2
 
         self.loadData()
         self.dataProcessing()
@@ -67,7 +60,7 @@ class BaseModel(metaclass=ABCMeta):
         """:cvar"""
 
         x1, y1 = loadUCIHAR()
-        x2, y2 = loadKUHAR()
+        x2, y2 = loadISLAB()
         x3, y3 = loadMotionSense()
 
         if self.dsConfig == 0:
@@ -104,7 +97,7 @@ class BaseModel(metaclass=ABCMeta):
             self.X, self.y = loadData()
 
         elif self.dsConfig == 4:
-            self.X, self.y = loadKUHAR()
+            self.X, self.y = loadISLAB()
 
     def dataProcessing(self):
         """

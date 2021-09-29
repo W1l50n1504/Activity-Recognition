@@ -1,14 +1,14 @@
 import pandas as pd
 
-sensor1 = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/rawdata/sensor_fOQPV_RXTT2kPgMrV25K-j.txt"
-sensor2 = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/rawdata/sensor_frKGD5xeRe67UghTP3z5A3.txt"
-sensor3 = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/rawdata/sensor_fUOAIa1pTpm1AGDfORuywD.txt"
+sensor1 = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/rawdata/sensor_fOQPV_RXTT2kPgMrV25K-j.txt"
+sensor2 = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/rawdata/sensor_frKGD5xeRe67UghTP3z5A3.txt"
+sensor3 = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/rawdata/sensor_fUOAIa1pTpm1AGDfORuywD.txt"
 
-dataPath = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/data/0.csv'
-accel = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/data/accel.csv'
-gyro = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/data/gyro.csv'
-accelMod = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/data/accel_modificato.csv'
-gyroMod = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/data/gyro_modificato.csv'
+dataPath = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/data/0.csv'
+accel = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/data/accel.csv'
+gyro = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/data/gyro.csv'
+accelMod = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/data/accel_modificato.csv'
+gyroMod = 'C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/data/gyro_modificato.csv'
 # x,y,z,canc,data,ora
 cols2 = ['x', 'y', 'z', 'canc', 'data', 'ora']
 
@@ -59,9 +59,9 @@ def puliziaSensore(sensore, save):
 def join():
     columns = ['xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro']
     #fixa walk rifai
-    accdata = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/activity/laying/sub1_acc.csv"
-    gyrodata = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/activity/laying/sub1_gyro.csv"
-    final = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ShieldApp/activity/laying/sub3.csv"
+    accdata = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/activity/laying/sub1_acc.csv"
+    gyrodata = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/activity/laying/sub1_gyro.csv"
+    final = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/activity/laying/sub3.csv"
 
     acc = pd.read_csv(accdata)
     gyro = pd.read_csv(gyrodata)
