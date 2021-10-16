@@ -572,6 +572,9 @@ def loadSavedData():
 
 
 if __name__ == '__main__':
-    x, y = loadMotionSense()
-    t = y.groupby('Activity')
-    print(t.first())
+    x = pd.DataFrame(columns=finalColumns, dtype='float32')
+    y = pd.DataFrame(columns=activity, dtype='int32')
+
+    x, y =  loadNmergeKU(x, y, kuharPath + activityListKUHAR[0], '')
+
+    print(x)
