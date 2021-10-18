@@ -14,6 +14,12 @@ cols2 = ['x', 'y', 'z', 'canc', 'data', 'ora']
 
 
 def clear(sensor):
+    """
+    :param sensore: stringa, contiene il path che porta ai file dei dati registrati dai sensori
+
+    funzione in cui vengono caricati i file originali utilizzando pandas e vengono selezionate solo le righe che contengono le stringhe ACCELEROMETER e GYROSCOPE
+    e successivamente salva i dati elaborati in un file
+    """
     cols = ['sensor', 'data']
 
     s = pd.read_csv(sensor, sep='"', header=None)
@@ -41,6 +47,14 @@ def clear(sensor):
 
 
 def puliziaSensore(sensore, save):
+    """
+    :param sensore: stringa, contiene il path che porta ai file dei dati registrati dai sensori
+    :param save: stringa, percorso in cui salvare i dati elaborati
+    :return: None
+
+    serve per eliminare gli apici dai dati registrati dai sensori
+
+    """
     columns1 = ['x', 'y', 'z', 'ora']
     df = pd.read_csv(sensore, sep=' |,', engine='python')  # , dtype='float64')
 
@@ -57,6 +71,12 @@ def puliziaSensore(sensore, save):
 
 
 def join():
+    """
+    :return: None
+
+    unisce i dataset contenenti i dati appartenenti a giroscopio e accelerometro in un unico dataset
+
+    """
     columns = ['xacc', 'yacc', 'zacc', 'xgyro', 'ygyro', 'zgyro']
     #fixa walk rifai
     accdata = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/activity/laying/sub1_acc.csv"
