@@ -17,6 +17,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\com\dataset\KU HAR Dataset\16.Stair-down\1043_T_2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\com\dataset\MotionSense\dws\sub_1.csv">
           <value>
             <Attribute>

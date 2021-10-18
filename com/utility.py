@@ -69,10 +69,10 @@ ISLABPath = absPath_ + '/dataset/ISLAB/activity/'
 
 stand = '0.Stand/1001_A_1.csv'
 sit = '1.Sit/1001_B_1.csv'
-lay = '5.Lay/1001_F_1.csv'
+lay = '5.Lay/1002_F_1.csv'
 walk = '11.Walk/1002_L_1.csv'
 ups = '15.Stair-up/1002_S_1.csv'
-downs = '16.Stair-down/1002_T_1.csv'
+downs = '16.Stair-down/1001_T_1.csv'
 
 activityListKUHAR = [stand, sit, lay, walk, ups, downs]
 
@@ -92,10 +92,11 @@ sit = '1.Sit/1001_B_1.csv'
 lay = '5.Lay/1001_F_1.csv'
 walk = '11.Walk/1002_L_1.csv'
 ups = '15.Stair-up/1002_S_1.csv'
-downs = '16.Stair-down/1002_T_1.csv'
+#downs = '16.Stair-down/1002_T_1.csv'
+downs = '16.Stair-down/1101_T_10.csv'
 
 activityListISLAB = ['downs/sub3.csv', 'laying/sub3.csv', 'sit/sub3.csv', 'stand/sub3.csv', 'ups/sub3.csv',
-                         'walk/sub3.csv']
+                     'walk/sub3.csv']
 
 columnsISLAB = ['xa', 'ya', 'za', 'xg', 'yg', 'zg']
 
@@ -121,20 +122,6 @@ finalColumns = [xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAn
 checkPointPathCNN = absPath_ + '/checkpoint/CNN'
 checkPointPathBLSTM = absPath_ + '/checkpoint/BLSTM'
 checkPointPathHMM = absPath_ + '/checkpoint/HMM'
-
-# posizione salvataggio immagini dei grafici dei modelli
-
-# grafici CNN
-confusionMatrixCNN = absPath_ + '/graphs/cnn/confusionMatrixCNN.png'
-trainingValAccCNN = absPath_ + '/graphs/cnn/trainingValAccCNN.png'
-trainingValAucCNN = absPath_ + '/graphs/cnn/trainingValAucCNN.png'
-modelLossCNN = absPath_ + '/graphs/cnn/modelLossCNN.png'
-
-# grafici BLSTM
-confusionMatrixBLSTM = absPath_ + '/graphs/blstm/heatMapBLSTM.png'
-trainingValAccBLSTM = absPath_ + '/graphs/blstm/trainingValAccBLSTM.png'
-TrainingValAucBLSTM = absPath_ + '/graphs/blstm/trainingValAucBLSTM.png'
-ModelLossBLSTM = absPath_ + '/graphs/blstm/modelLossBLSTM.png'
 
 # dizionari riguardanti le attività registrate dai dataset
 labelDict = {'WALKING': 1, 'WALKING_UPSTAIRS': 2, 'WALKING_DOWNSTAIRS': 3, 'SITTING': 4, 'STANDING': 5, 'LAYING': 6}
@@ -569,12 +556,3 @@ def loadSavedData():
     # x = torch.tensor(x.values)
 
     return x, y
-
-
-if __name__ == '__main__':
-    x = pd.DataFrame(columns=finalColumns, dtype='float32')
-    y = pd.DataFrame(columns=activity, dtype='int32')
-
-    x, y =  loadNmergeKU(x, y, kuharPath + activityListKUHAR[0], '')
-
-    print(x)
