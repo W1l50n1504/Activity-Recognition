@@ -21,19 +21,12 @@ gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 for device in gpu_devices:
     tf.config.experimental.set_memory_growth(device, True)
 
-# import required module
-from playsound import playsound
-
-# in f1score cambia il numero di classes se cambi il numero di dataset che carichi, se si tratta solo di UCIHAR
-# metti 6, 7 negli altri casi
-
 METRICS = [
     tf.keras.metrics.Accuracy(name="Accuracy"),
     tf.keras.metrics.Precision(name="precision"),
     tf.keras.metrics.Recall(name="recall"),
     tfa.metrics.F1Score(num_classes=6, threshold=0.5),
     tf.keras.metrics.AUC(name="auc")
-    # tf.keras.metrics.BinaryAccuracy(name="binaryAcc"),
 
 ]
 
@@ -44,8 +37,21 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class BaseModel(metaclass=ABCMeta):
+    """
+    Classe base in cui si inizializzano gli attributi e i metodi iniziali di ogni classe che verra' implementata in futuro
+    """
 
     def __init__(self):
+        """
+        X e y sono i dataframe che conterranno i dati e le label rispettivamente appartenenti ai dataset
+        model rappresenta l'oggetto appartenente alla classe dei modelli, cambia per ogni implementazione di BaseModel
+        checkpoint contiene una copia del modello creato e si occupa di salvare un'istantanea del modello
+        X_train e y_train contengono i dati che verranno utilizzati per il traning del modello
+        X_test e y_test contengono i dati che verranno utilizzati per il test del modello
+        X_val e y_val contengono i dati che verranno utilizzati per la validation del training
+        epochs rappresenta il numero di iterazioni da fare durante l'addestramento del modello
+        dsConfig e' un valore che rappresenta in che maniera caricare i dati e che tipo di dataset caricare
+        """
         self.X = None
         self.y = None
         self.model = None
@@ -58,16 +64,18 @@ class BaseModel(metaclass=ABCMeta):
         self.y_val = None
         self.history = None
         self.epochs = 100
-        self.dsConfig = 3
+        self.dsConfig = 2
 
         self.loadData()
         self.dataProcessing()
 
     def loadData(self):
-        """:cvar"""
+        """
+        funzione in cui si caricano i dati dai vari dataset sulla base del valore di dsConfig
+        """
 
         x1, y1 = loadUCIHAR()
-        x2, y2 = loadKUHAR()
+        x2, y2 = loadISLAB()
         x3, y3 = loadMotionSense()
 
         if self.dsConfig == 0:
@@ -104,11 +112,11 @@ class BaseModel(metaclass=ABCMeta):
             self.X, self.y = loadData()
 
         elif self.dsConfig == 4:
-            self.X, self.y = loadKUHAR()
+            self.X, self.y = loadISLAB()
 
     def dataProcessing(self):
         """
-        tldr
+        viene effettuato lo splitting dei dati
         """
         print('elaborazione dei dati...')
 
@@ -129,11 +137,7 @@ class BaseModel(metaclass=ABCMeta):
         self.y_train = enc.transform(self.y_train)
         self.y_test = enc.transform(self.y_test)
         self.y_val = enc.transform(self.y_val)
-        """
-        self.y_train = np.array(self.y_train).reshape(-1, 1)
-        self.y_test = np.array(self.y_test).reshape(-1, 1)
-        self.y_val = np.array(self.y_val).reshape(-1, 1)
-        """
+
         print('dimensione reshape', self.X_train[..., np.newaxis].shape)
         print('dimensione reshape', self.X_test[..., np.newaxis].shape)
         print('dimensione reshape', self.X_val[..., np.newaxis].shape)
@@ -186,17 +190,23 @@ class BaseModel(metaclass=ABCMeta):
 
     @abstractmethod
     def modelCreation(self):
-        """:cvar"""
+        """
+        in base al modello che si vuole utilizzare viene implementato diversamente
+        """
         pass
 
     @abstractmethod
     def fit(self):
         """
-        verrà implementato dai modelli
+        in base al modello che si vuole utilizzare viene implementato diversamente
         """
         pass
 
     def plot(self):
+
+        """
+        funzione in cui vengono creati i grafici che rappresentano le performance dei modelli
+        """
 
         rounded_labels = np.argmax(self.y_test, axis=1)
         y_pred = self.model.predict_classes(self.X_test)
@@ -232,9 +242,9 @@ class BaseModel(metaclass=ABCMeta):
             sns.set(font_scale=1)  # for label size
             sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
                         yticklabels=(
-                        "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
                         xticklabels=(
-                        "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
 
         plt.show()
 

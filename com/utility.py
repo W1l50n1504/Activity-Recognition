@@ -13,8 +13,8 @@ absPath_ = 'C:/Users/david/PycharmProjects/Activity-Recognition/com'
 # absPath_ = '/home/w1l50n/PycharmProjects/Activity-Recognition/com'
 
 # percorso che contiene tutti i dati precaricati, in modo da evitare di dover ricalcolarli tutti ogni volta
-xPath = absPath_ + '/dataset/ShieldApp/xData.csv'
-yPath = absPath_ + '/dataset/ShieldApp/yData.csv'
+xPath = absPath_ + '/dataset/ISLAB/xData.csv'
+yPath = absPath_ + '/dataset/ISLAB/yData.csv'
 
 # etichetta dataset
 activity = ['Activity']
@@ -65,13 +65,14 @@ zMSgyro = 'rotationRate.z'
 
 # KUHAR dataset data & labels
 kuharPath = absPath_ + '/dataset/KU HAR Dataset/'
+ISLABPath = absPath_ + '/dataset/ISLAB/activity/'
 
 stand = '0.Stand/1001_A_1.csv'
 sit = '1.Sit/1001_B_1.csv'
-lay = '5.Lay/1001_F_1.csv'
+lay = '5.Lay/1002_F_1.csv'
 walk = '11.Walk/1002_L_1.csv'
 ups = '15.Stair-up/1002_S_1.csv'
-downs = '16.Stair-down/1002_T_1.csv'
+downs = '16.Stair-down/1001_T_1.csv'
 
 activityListKUHAR = [stand, sit, lay, walk, ups, downs]
 
@@ -85,6 +86,19 @@ yKUgyro = 'rotationRate.y'
 zKUgyro = 'rotationRate.z'
 
 columnsKUHAR = [time1, xKUacc, yKUacc, zKUacc, time2, xKUgyro, yKUgyro, zKUgyro]
+
+stand = '0.Stand/1001_A_1.csv'
+sit = '1.Sit/1001_B_1.csv'
+lay = '5.Lay/1001_F_1.csv'
+walk = '11.Walk/1002_L_1.csv'
+ups = '15.Stair-up/1002_S_1.csv'
+#downs = '16.Stair-down/1002_T_1.csv'
+downs = '16.Stair-down/1101_T_10.csv'
+
+activityListISLAB = ['downs/sub3.csv', 'laying/sub3.csv', 'sit/sub3.csv', 'stand/sub3.csv', 'ups/sub3.csv',
+                     'walk/sub3.csv']
+
+columnsISLAB = ['xa', 'ya', 'za', 'xg', 'yg', 'zg']
 
 # labels per il trainset
 xacc = 'x-acc'
@@ -108,20 +122,6 @@ finalColumns = [xacc, yacc, zacc, magacc, xgyro, ygyro, zgyro, maggyro, std, xAn
 checkPointPathCNN = absPath_ + '/checkpoint/CNN'
 checkPointPathBLSTM = absPath_ + '/checkpoint/BLSTM'
 checkPointPathHMM = absPath_ + '/checkpoint/HMM'
-
-# posizione salvataggio immagini dei grafici dei modelli
-
-# grafici CNN
-confusionMatrixCNN = absPath_ + '/graphs/cnn/confusionMatrixCNN.png'
-trainingValAccCNN = absPath_ + '/graphs/cnn/trainingValAccCNN.png'
-trainingValAucCNN = absPath_ + '/graphs/cnn/trainingValAucCNN.png'
-modelLossCNN = absPath_ + '/graphs/cnn/modelLossCNN.png'
-
-# grafici BLSTM
-confusionMatrixBLSTM = absPath_ + '/graphs/blstm/heatMapBLSTM.png'
-trainingValAccBLSTM = absPath_ + '/graphs/blstm/trainingValAccBLSTM.png'
-TrainingValAucBLSTM = absPath_ + '/graphs/blstm/trainingValAucBLSTM.png'
-ModelLossBLSTM = absPath_ + '/graphs/blstm/modelLossBLSTM.png'
 
 # dizionari riguardanti le attività registrate dai dataset
 labelDict = {'WALKING': 1, 'WALKING_UPSTAIRS': 2, 'WALKING_DOWNSTAIRS': 3, 'SITTING': 4, 'STANDING': 5, 'LAYING': 6}
@@ -332,6 +332,52 @@ def loadNmergeKU(X_df, Y_df, path, label):
     return X_df, Y_df
 
 
+def loadNmergeSH(X_df, Y_df, path, label):
+    # Funzione che carica i dati contenuti nei file del dataset ISLAB ne carica i dati selezionando solo le feature utili
+    # e li concatena
+
+    df = pd.read_csv(path)
+
+    finalDf = pd.DataFrame(columns=finalColumns, dtype='float32')
+
+    dfMagnitude = pd.DataFrame(columns=['magXY', 'magYZ', 'magXZ'], dtype='float32')
+
+    dfArcsin = pd.DataFrame(columns=['arcsinx', 'arcsiny', 'arcsinz'], dtype='float32')
+
+    finalDf[xacc] = df['xa']
+    finalDf[yacc] = df['ya']
+    finalDf[zacc] = df['za']
+    finalDf[magacc] = np.sqrt((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2) + (finalDf[zacc] ** 2))
+
+    dfMagnitude['magXY'] = np.sqrt(np.abs((finalDf[xacc] ** 2) + (finalDf[yacc] ** 2)))
+    dfMagnitude['magYZ'] = np.sqrt(np.abs((finalDf[yacc] ** 2) + (finalDf[zacc] ** 2)))
+    dfMagnitude['magXZ'] = np.sqrt(np.abs((finalDf[zacc] ** 2) + (finalDf[zacc] ** 2)))
+
+    # angolo = arcsin(y/radquadra(magnitudine))
+    dfArcsin['arcsinx'] = normalizeData(finalDf[xacc] / np.sqrt(finalDf[magacc]))
+    dfArcsin['arcsiny'] = normalizeData(finalDf[yacc] / np.sqrt(finalDf[magacc]))
+    dfArcsin['arcsinz'] = normalizeData(finalDf[zacc] / np.sqrt(finalDf[magacc]))
+
+    finalDf[xAngle] = np.arcsin(dfArcsin['arcsinx'])
+    finalDf[yAngle] = np.arcsin(dfArcsin['arcsiny'])
+    finalDf[zAngle] = np.arcsin(dfArcsin['arcsinz'])
+
+    finalDf[xgyro] = df['xg']
+    finalDf[ygyro] = df['yg']
+    finalDf[zgyro] = df['zg']
+    finalDf[maggyro] = np.sqrt((finalDf[xgyro] ** 2) + (finalDf[ygyro] ** 2) + (finalDf[zgyro] ** 2))
+
+    finalDf[std] = finalDf.std(axis=1, skipna=True)
+
+    X_df = pd.concat([X_df, finalDf])
+    X_df = X_df.reset_index(drop=True)
+
+    for i in range(len(Y_df), len(X_df)):
+        Y_df.append(labelDict[label])
+
+    return X_df, Y_df
+
+
 def loadUCIHAR():
     # copia ed elaborazione dei dati contenuti nell'UCIHAR
     # UCI HAR Dataset caricato correttamente con il nome di ogni feature
@@ -374,8 +420,6 @@ def loadMotionSense():
     Y_label = []
 
     X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[0], 'WALKING_DOWNSTAIRS')
-
-    # X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[1], 'LAYING') #in realta' si tratta di jogging, controllare se esiste
 
     X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[2], 'SITTING')
 
@@ -439,6 +483,41 @@ def loadKUHAR():
     return X_df.copy(), Y_df.copy()
 
 
+def loadISLAB():
+    # dataset finali che conterranno i dati per come ci servono
+    X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
+    Y_df = pd.DataFrame(columns=activity, dtype='int32')
+
+    Y_label = []
+
+    X_df, Y_label = loadNmergeSH(X_df, Y_label, ISLABPath + activityListISLAB[0], 'WALKING_DOWNSTAIRS')
+
+    X_df, Y_label = loadNmergeSH(X_df, Y_label, ISLABPath + activityListISLAB[1], 'LAYING')
+
+    X_df, Y_label = loadNmergeSH(X_df, Y_label, ISLABPath + activityListISLAB[2], 'SITTING')
+
+    X_df, Y_label = loadNmergeSH(X_df, Y_label, ISLABPath + activityListISLAB[3], 'STANDING')
+
+    X_df, Y_label = loadNmergeSH(X_df, Y_label, ISLABPath + activityListISLAB[4], 'WALKING_UPSTAIRS')
+
+    X_df, Y_label = loadNmergeSH(X_df, Y_label, ISLABPath + activityListISLAB[5], 'WALKING')
+
+    yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
+    X_df['Activity'] = yTemp['Activity']
+    X_df.dropna(subset=[xAngle, yAngle, zAngle], inplace=True)
+
+    Y_df = pd.DataFrame(columns=activity, dtype='int64')
+    Y_df['Activity'] = X_df['Activity']
+    X_df.drop('Activity', axis='columns', inplace=True)
+
+    X_df = X_df.reset_index(drop=True)
+    Y_df = Y_df.reset_index(drop=True)
+
+    X_df, Y_df = reduceSample(X_df, Y_df)
+
+    return X_df.copy(), Y_df.copy()
+
+
 def loadData():
     # carica i dati in memoria dei tre dataset
     print('Inizio caricamento dataset...')
@@ -464,22 +543,16 @@ def loadData():
 
 
 def saveData(X, Y):
-    print('Salvataggio dati in ShieldApp...')
+    print('Salvataggio dati in ISLAB...')
     X.to_csv(xPath, index=False)
     Y.to_csv(yPath, index=False)
 
 
 def loadSavedData():
-    print('Caricamento dati da ShieldApp...')
+    print('Caricamento dati da ISLAB...')
     x = pd.read_csv(xPath)
     y = pd.read_csv(yPath)
 
     # x = torch.tensor(x.values)
 
     return x, y
-
-
-if __name__ == '__main__':
-    x, y = loadMotionSense()
-    t = y.groupby('Activity')
-    print(t.first())

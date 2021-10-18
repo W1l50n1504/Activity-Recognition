@@ -68,10 +68,10 @@ class DeepBeliefNetwork(BaseModel, ABC):
         plt.show()
 
     def main(self):
-        # self.modelCreation()
-        # self.fit()
-        # self.saveModel()
-        self.loadModel()
+        self.modelCreation()
+        self.fit()
+        self.saveModel()
+        #self.loadModel()
         self.plot()
 
 
