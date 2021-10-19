@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 import random
-import seaborn as sns
+# import seaborn as sns
 
 from sklearn.utils import resample
 
@@ -12,7 +12,7 @@ from sklearn.utils import resample
 absPath_ = 'C:/Users/david/PycharmProjects/Activity-Recognition/com'
 # absPath_ = '/home/w1l50n/PycharmProjects/Activity-Recognition/com'
 
-# percorso che contiene tutti i dati precaricati, in modo da evitare di dover ricalcolarli tutti ogni volta
+# percorso che contiene tutti i KUHARIntero precaricati, in modo da evitare di dover ricalcolarli tutti ogni volta
 xPath = absPath_ + '/dataset/ShieldApp/xData.csv'
 yPath = absPath_ + '/dataset/ShieldApp/yData.csv'
 
@@ -47,14 +47,14 @@ zUCIgyro = 'tBodyGyro-mean()-Z'
 
 motionPath = absPath_ + '/dataset/MotionSense/'
 
-dws = 'dws/sub_1.csv'
-jog = 'jog/sub_1.csv'
-sitt = 'sit/sub_1.csv'
-upss = 'ups/sub_1.csv'
-wlk = 'wlk/sub_1.csv'
-std = 'std/sub_1.csv'
+dws = 'dws/'
+jog = 'jog/'
+sitt = 'sit/'
+upss = 'ups/'
+wlk = 'wlk/'
+stdd = 'std/'
 
-activityListMotionSense = [dws, jog, sitt, upss, wlk, std]
+activityListMotionSense = [dws, sitt, upss, wlk, stdd]
 
 xMSacc = 'userAcceleration.x'
 yMSacc = 'userAcceleration.y'
@@ -66,12 +66,12 @@ zMSgyro = 'rotationRate.z'
 # KUHAR dataset data & labels
 kuharPath = absPath_ + '/dataset/KU HAR Dataset/'
 
-stand = '0.Stand/1001_A_1.csv'
-sit = '1.Sit/1001_B_1.csv'
-lay = '5.Lay/1001_F_1.csv'
-walk = '11.Walk/1002_L_1.csv'
-ups = '15.Stair-up/1002_S_1.csv'
-downs = '16.Stair-down/1002_T_1.csv'
+stand = '0.Stand/'
+sit = '1.Sit/'
+lay = '5.Lay/'
+walk = '11.Walk/'
+ups = '15.Stair-up/'
+downs = '16.Stair-down/'
 
 activityListKUHAR = [stand, sit, lay, walk, ups, downs]
 
@@ -238,7 +238,7 @@ def reduceSample(Xdf, yDf):
 
 
 def loadNmergeMS(X_df, Y_df, path, label):
-    # Funzione che carica i dati contenuti nei file del dataset UMAFALL ne carica i dati selezionando solo le feature utili
+    # Funzione che carica i KUHARIntero contenuti nei file del dataset UMAFALL ne carica i KUHARIntero selezionando solo le feature utili
     # e li concatena nel dataset finale di MotionSense
 
     df = pd.read_csv(path)
@@ -287,7 +287,7 @@ def normalizeData(df):
 
 
 def loadNmergeKU(X_df, Y_df, path, label):
-    # Funzione che carica i dati contenuti nei file del dataset UMAFALL ne carica i dati selezionando solo le feature utili
+    # Funzione che carica i KUHARIntero contenuti nei file del dataset UMAFALL ne carica i KUHARIntero selezionando solo le feature utili
     # e li concatena nel dataset finale di MotionSense
 
     df = pd.read_csv(path, header=None, names=columnsKUHAR)
@@ -333,7 +333,7 @@ def loadNmergeKU(X_df, Y_df, path, label):
 
 
 def loadUCIHAR():
-    # copia ed elaborazione dei dati contenuti nell'UCIHAR
+    # copia ed elaborazione dei KUHARIntero contenuti nell'UCIHAR
     # UCI HAR Dataset caricato correttamente con il nome di ogni feature
     # restituisce due dataset
     # FUNZIONA
@@ -387,7 +387,7 @@ def loadMotionSense():
 
     yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
 
-    # per qualche motivo droppa intere categorie e si perdono dei dati riguardanti le attività 3 e 4
+    # per qualche motivo droppa intere categorie e si perdono dei KUHARIntero riguardanti le attività 3 e 4
     X_df['Activity'] = yTemp['Activity']
 
     X_df.dropna(subset=[xAngle, yAngle, zAngle], inplace=True)
@@ -405,7 +405,7 @@ def loadMotionSense():
 
 
 def loadKUHAR():
-    # dataset finali che conterranno i dati per come ci servono
+    # dataset finali che conterranno i KUHARIntero per come ci servono
     X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
     Y_df = pd.DataFrame(columns=activity, dtype='int32')
 
@@ -440,7 +440,7 @@ def loadKUHAR():
 
 
 def loadData():
-    # carica i dati in memoria dei tre dataset
+    # carica i KUHARIntero in memoria dei tre dataset
     print('Inizio caricamento dataset...')
 
     # carico UCIHAR
@@ -463,14 +463,14 @@ def loadData():
     return X_df, y_df
 
 
-def saveData(X, Y):
-    print('Salvataggio dati in ShieldApp...')
-    X.to_csv(xPath, index=False)
-    Y.to_csv(yPath, index=False)
+def saveData(X, Y, path):
+    print('Salvataggio KUHARIntero in ShieldApp...')
+    X.to_csv(path + 'xData.csv', index=False)
+    Y.to_csv(path + 'yData.csv', index=False)
 
 
 def loadSavedData():
-    print('Caricamento dati da ShieldApp...')
+    print('Caricamento KUHARIntero da ShieldApp...')
     x = pd.read_csv(xPath)
     y = pd.read_csv(yPath)
 
@@ -478,8 +478,9 @@ def loadSavedData():
 
     return x, y
 
+def load
 
 if __name__ == '__main__':
-    x, y = loadMotionSense()
-    t = y.groupby('Activity')
-    print(t.first())
+    print('hello')
+    fileList = os.listdir(kuharPath + '0.Stand/')
+    print(fileList)

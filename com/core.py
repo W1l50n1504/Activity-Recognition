@@ -110,7 +110,7 @@ class BaseModel(metaclass=ABCMeta):
         """
         tldr
         """
-        print('elaborazione dei dati...')
+        print('elaborazione dei KUHARIntero...')
 
         self.X = np.array(self.X)
 
@@ -181,7 +181,7 @@ class BaseModel(metaclass=ABCMeta):
             self.X_val = self.X_val.reshape(579, 12, 1)
             """
 
-        print('Fine elaborazione dati.')
+        print('Fine elaborazione KUHARIntero.')
         self.y = np.array(self.y)
 
     @abstractmethod

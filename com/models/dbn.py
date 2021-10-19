@@ -13,7 +13,7 @@ class DeepBeliefNetwork(BaseModel, ABC):
         super().__init__()
 
     def dataProcessing(self):
-        # elaborazione dei dati nel formato utile al funzionamento del dbn con conseguente separazione in train and test data
+        # elaborazione dei KUHARIntero nel formato utile al funzionamento del dbn con conseguente separazione in train and test data
 
         self.X = np.abs(self.X) + self.X.mean()
         self.X = np.array(self.X).astype('float64')
