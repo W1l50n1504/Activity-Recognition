@@ -477,10 +477,3 @@ def loadSavedData():
     # x = torch.tensor(x.values)
 
     return x, y
-
-def load
-
-if __name__ == '__main__':
-    print('hello')
-    fileList = os.listdir(kuharPath + '0.Stand/')
-    print(fileList)
