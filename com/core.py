@@ -21,20 +21,12 @@ gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 for device in gpu_devices:
     tf.config.experimental.set_memory_growth(device, True)
 
-# import required module
-from playsound import playsound
-
-# in f1score cambia il numero di classes se cambi il numero di dataset che carichi, se si tratta solo di UCIHAR
-# metti 6, 7 negli altri casi
-
 METRICS = [
     tf.keras.metrics.Accuracy(name="Accuracy"),
     tf.keras.metrics.Precision(name="precision"),
     tf.keras.metrics.Recall(name="recall"),
     tfa.metrics.F1Score(num_classes=6, threshold=0.5),
     tf.keras.metrics.AUC(name="auc")
-    # tf.keras.metrics.BinaryAccuracy(name="binaryAcc"),
-
 ]
 
 RANDOM_SEED = 42
@@ -67,8 +59,8 @@ class BaseModel(metaclass=ABCMeta):
         """:cvar"""
 
         x1, y1 = loadUCIHAR()
-        x2, y2 = loadKUHAR()
-        x3, y3 = loadMotionSense()
+        x2, y2 = loadData(kuharPath)
+        x3, y3 = loadData(motionPath)
 
         if self.dsConfig == 0:
             # train uci + ku test motion

@@ -439,34 +439,19 @@ def loadKUHAR():
     return X_df.copy(), Y_df.copy()
 
 
-def loadData():
-    # carica i KUHARIntero in memoria dei tre dataset
+def loadData(path):
     print('Inizio caricamento dataset...')
 
-    # carico UCIHAR
-    XDataUCI, yDataUCI = loadUCIHAR()
-    # print('UCIHAR\n', XDataUCI, yDataUCI)
-    # carico MotionSense
-    XDataMS, yDataMS = loadMotionSense()
-    # print('MotionSense\n', XDataMS, yDataMS)
-    # carico KUHAR
-    XDataKU, yDataKU = loadKUHAR()
-    # print('KUHAR\n', XDataKU, yDataKU)
-    # unione dei tre dataset
+    x = pd.read_csv(path + 'xData.csv')
+    y = pd.read_csv(path + 'yData.csv')
 
-    X_df = pd.concat([XDataUCI, XDataKU, XDataMS])
-    X_df = X_df.reset_index(drop=True)
-
-    y_df = pd.concat([yDataUCI, yDataKU, yDataMS])
-    y_df = y_df.reset_index(drop=True)
-
-    return X_df, y_df
+    return x, y
 
 
 def saveData(X, Y, path):
     print('Salvataggio KUHARIntero in ShieldApp...')
-    X.to_csv(path + 'xData.csv', index=False)
-    Y.to_csv(path + 'yData.csv', index=False)
+    X.to_csv(path + 'xData.csv', index=False, header=None)
+    Y.to_csv(path + 'yData.csv', index=False, header=None)
 
 
 def loadSavedData():

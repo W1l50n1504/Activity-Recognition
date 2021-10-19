@@ -151,8 +151,8 @@ def loadMotionSenseUser():
 
 
 if __name__ == '__main__':
-    x, y = loadUCIHARUser()
+    x, y = loadMotionSenseUser()
 
-    print(x, '\n', y)
+    print(x, y)
 
-    saveData(x, y, path)
+    saveData(x, y, motionPath)
