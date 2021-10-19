@@ -56,7 +56,11 @@ class BaseModel(metaclass=ABCMeta):
         self.dataProcessing()
 
     def loadData(self):
-        """:cvar"""
+        """
+        carica i dati dai dataset
+
+        :return:
+        """
 
         x1, y1 = loadUCIHAR()
         x2, y2 = loadData(kuharPath)
@@ -74,8 +78,8 @@ class BaseModel(metaclass=ABCMeta):
 
         elif self.dsConfig == 1:
             # train ku + motion test uci
-            x1 = np.array(x1)
-            y1 = np.array(y1)
+            #x1 = np.array(x1)
+            #y1 = np.array(y1)
 
             self.X = pd.concat([x3, x2])
             self.y = pd.concat([y3, y2])
@@ -224,9 +228,9 @@ class BaseModel(metaclass=ABCMeta):
             sns.set(font_scale=1)  # for label size
             sns.heatmap(df_cm, annot=True, annot_kws={"size": 12},
                         yticklabels=(
-                        "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"),
                         xticklabels=(
-                        "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
+                            "Walking", "W_Upstairs", "W_Downstairs", "Sitting", "Standing", "Laying", "Jogging"))
 
         plt.show()
 

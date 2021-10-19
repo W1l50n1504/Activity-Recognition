@@ -151,8 +151,7 @@ def loadMotionSenseUser():
 
 
 if __name__ == '__main__':
-    x, y = loadMotionSenseUser()
+    x, y = loadKUHARUser()
 
-    print(x, y)
+    print(y.isnull().values.any())
 
-    saveData(x, y, motionPath)

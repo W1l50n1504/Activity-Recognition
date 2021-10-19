@@ -13,17 +13,18 @@ class DeepBeliefNetwork(BaseModel, ABC):
         super().__init__()
 
     def dataProcessing(self):
-        # elaborazione dei KUHARIntero nel formato utile al funzionamento del dbn con conseguente separazione in train and test data
 
-        self.X = np.abs(self.X) + self.X.mean()
-        self.X = np.array(self.X).astype('float64')
+        self.X_train = np.abs(self.X) + self.X.mean()
+        self.X_train = np.array(self.X).astype('float64')
 
-        self.y = np.array(self.y.values)
-        self.y = self.y.flatten()
+        self.y_train = np.array(self.y.values)
+        #self.y_train = self.y_train.flatten()
+
+        print('lunghezza dati modello: x: ', len(self.X_train), ', y: ', len(self.y_train))
 
         # Splitting data
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3,
-                                                                                random_state=42)
+        #self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3,
+         #                                                                       random_state=42)
 
     def modelCreation(self):
         self.model = SupervisedDBNClassification(hidden_layers_structure=[1024, 1024],
