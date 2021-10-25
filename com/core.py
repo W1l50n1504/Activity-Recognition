@@ -50,7 +50,7 @@ class BaseModel(metaclass=ABCMeta):
         self.y_val = None
         self.history = None
         self.epochs = 100
-        self.dsConfig = 4
+        self.dsConfig = 0
 
         self.loadData()
         self.dataProcessing()

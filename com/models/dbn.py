@@ -13,7 +13,6 @@ class DeepBeliefNetwork(BaseModel, ABC):
         super().__init__()
 
     def dataProcessing(self):
-
         self.X_train = np.abs(self.X) + self.X.mean()
         self.X_train = np.array(self.X).astype('float64')
 
@@ -24,8 +23,8 @@ class DeepBeliefNetwork(BaseModel, ABC):
         self.y_train = self.y_train.flatten()
 
         # Splitting data
-        #self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3,
-         #                                                                       random_state=42)
+        # self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3,
+        #                                                                       random_state=42)
 
     def modelCreation(self):
         self.model = SupervisedDBNClassification(hidden_layers_structure=[1024, 1024],
@@ -49,7 +48,6 @@ class DeepBeliefNetwork(BaseModel, ABC):
             'C:/Users/david/PycharmProjects/Activity-Recognition/com/checkpoint/DBN/bestDBN.pkl')
 
     def plot(self):
-
         y_pred = self.model.predict(self.X_test)
 
         mat = confusion_matrix(self.y_test, y_pred)
