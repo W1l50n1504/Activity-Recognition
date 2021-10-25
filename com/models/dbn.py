@@ -17,10 +17,11 @@ class DeepBeliefNetwork(BaseModel, ABC):
         self.X_train = np.abs(self.X) + self.X.mean()
         self.X_train = np.array(self.X).astype('float64')
 
-        self.y_train = np.array(self.y.values)
-        #self.y_train = self.y_train.flatten()
+        print(self.y)
 
-        print('lunghezza dati modello: x: ', len(self.X_train), ', y: ', len(self.y_train))
+        self.y_train = np.array(self.y)
+        print(self.y_train)
+        self.y_train = self.y_train.flatten()
 
         # Splitting data
         #self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.3,

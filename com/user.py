@@ -151,7 +151,12 @@ def loadMotionSenseUser():
 
 
 if __name__ == '__main__':
-    x, y = loadKUHARUser()
+    x2, y2 = loadData(kuharPath)
+    x1, y1 = loadUCIHAR()
 
-    print(y.isnull().values.any())
+    y1 = np.array(y1)
+    y2 = np.array(y2)
 
+    y = np.concatenate((y1, y2), axis=0)
+
+    print(y)

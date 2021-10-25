@@ -411,17 +411,17 @@ def loadKUHAR():
 
     Y_label = []
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[0], 'STANDING')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[0] + '1001_A_1.csv', 'STANDING')
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[1], 'SITTING')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[1] + '1001_B_1.csv', 'SITTING')
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[2], 'LAYING')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[2] + '1001_F_1.csv', 'LAYING')
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[3], 'WALKING')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[3] + '1002_L_1.csv', 'WALKING')
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[4], 'WALKING_UPSTAIRS')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[4] + '1002_S_1.csv', 'WALKING_UPSTAIRS')
 
-    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[5], 'WALKING_DOWNSTAIRS')
+    X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[5] + '1002_T_1.csv', 'WALKING_DOWNSTAIRS')
 
     yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
     X_df['Activity'] = yTemp['Activity']
@@ -442,8 +442,8 @@ def loadKUHAR():
 def loadData(path):
     print('Inizio caricamento dataset...')
 
-    x = pd.read_csv(path + 'xData.csv')
-    y = pd.read_csv(path + 'yData.csv')
+    x = pd.read_csv(path + 'xData.csv', header=None)
+    y = pd.read_csv(path + 'yData.csv', header=None)
 
     return x, y
 

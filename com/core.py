@@ -50,7 +50,7 @@ class BaseModel(metaclass=ABCMeta):
         self.y_val = None
         self.history = None
         self.epochs = 100
-        self.dsConfig = 0
+        self.dsConfig = 4
 
         self.loadData()
         self.dataProcessing()
@@ -63,7 +63,7 @@ class BaseModel(metaclass=ABCMeta):
         """
 
         x1, y1 = loadUCIHAR()
-        x2, y2 = loadData(kuharPath)
+        x2, y2 = loadData(kuharPath)  # c'è qualcosa che non va nel caricamento delle label di kuhar controlla meglio
         x3, y3 = loadData(motionPath)
 
         if self.dsConfig == 0:
@@ -72,14 +72,18 @@ class BaseModel(metaclass=ABCMeta):
             y3 = np.array(y3)
 
             self.X = pd.concat([x1, x2])
-            self.y = pd.concat([y1, y2])
+
+            y1 = np.array(y1)
+            y2 = np.array(y2)
+            self.y = np.concatenate((y1, y2), axis=0)
+
             self.X_test = x3
             self.y_test = y3
 
         elif self.dsConfig == 1:
             # train ku + motion test uci
-            #x1 = np.array(x1)
-            #y1 = np.array(y1)
+            # x1 = np.array(x1)
+            # y1 = np.array(y1)
 
             self.X = pd.concat([x3, x2])
             self.y = pd.concat([y3, y2])
@@ -104,9 +108,8 @@ class BaseModel(metaclass=ABCMeta):
 
     def dataProcessing(self):
         """
-        tldr
+        funzione in cui si effettuano tutte le elaborazinoi sui dati
         """
-        print('elaborazione dei KUHARIntero...')
 
         self.X = np.array(self.X)
 
@@ -177,8 +180,8 @@ class BaseModel(metaclass=ABCMeta):
             self.X_val = self.X_val.reshape(579, 12, 1)
             """
 
-        print('Fine elaborazione KUHARIntero.')
         self.y = np.array(self.y)
+        print(self.y)
 
     @abstractmethod
     def modelCreation(self):
