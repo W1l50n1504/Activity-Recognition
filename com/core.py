@@ -16,6 +16,7 @@ from tensorflow.keras.layers import Conv2D, Conv1D, MaxPool1D, MaxPool2D, Flatte
 from tensorflow.keras.optimizers import Adam
 
 from com.utility import *
+from com.user import *
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 for device in gpu_devices:
@@ -27,6 +28,7 @@ METRICS = [
     tf.keras.metrics.Recall(name="recall"),
     tfa.metrics.F1Score(num_classes=6, threshold=0.5),
     tf.keras.metrics.AUC(name="auc")
+
 ]
 
 RANDOM_SEED = 42
@@ -36,8 +38,21 @@ tf.random.set_seed(RANDOM_SEED)
 
 
 class BaseModel(metaclass=ABCMeta):
+    """
+    Classe base in cui si inizializzano gli attributi e i metodi iniziali di ogni classe che verra' implementata in futuro
+    """
 
     def __init__(self):
+        """
+        X e y sono i dataframe che conterranno i dati e le label rispettivamente appartenenti ai dataset
+        model rappresenta l'oggetto appartenente alla classe dei modelli, cambia per ogni implementazione di BaseModel
+        checkpoint contiene una copia del modello creato e si occupa di salvare un'istantanea del modello
+        X_train e y_train contengono i dati che verranno utilizzati per il traning del modello
+        X_test e y_test contengono i dati che verranno utilizzati per il test del modello
+        X_val e y_val contengono i dati che verranno utilizzati per la validation del training
+        epochs rappresenta il numero di iterazioni da fare durante l'addestramento del modello
+        dsConfig e' un valore che rappresenta in che maniera caricare i dati e che tipo di dataset caricare
+        """
         self.X = None
         self.y = None
         self.model = None
@@ -57,14 +72,12 @@ class BaseModel(metaclass=ABCMeta):
 
     def loadData(self):
         """
-        carica i dati dai dataset
-
-        :return:
+        funzione in cui si caricano i dati dai vari dataset sulla base del valore di dsConfig
         """
 
         x1, y1 = loadUCIHAR()
-        x2, y2 = loadData(kuharPath)  # c'è qualcosa che non va nel caricamento delle label di kuhar controlla meglio
-        x3, y3 = loadData(motionPath)
+        x2, y2 = loadKUHAR()
+        x3, y3 = loadMotionSense()
 
         if self.dsConfig == 0:
             # train uci + ku test motion
@@ -72,18 +85,14 @@ class BaseModel(metaclass=ABCMeta):
             y3 = np.array(y3)
 
             self.X = pd.concat([x1, x2])
-
-            y1 = np.array(y1)
-            y2 = np.array(y2)
-            self.y = np.concatenate((y1, y2), axis=0)
-
+            self.y = pd.concat([y1, y2])
             self.X_test = x3
             self.y_test = y3
 
         elif self.dsConfig == 1:
             # train ku + motion test uci
-            # x1 = np.array(x1)
-            # y1 = np.array(y1)
+            x1 = np.array(x1)
+            y1 = np.array(y1)
 
             self.X = pd.concat([x3, x2])
             self.y = pd.concat([y3, y2])
@@ -104,12 +113,13 @@ class BaseModel(metaclass=ABCMeta):
             self.X, self.y = loadData()
 
         elif self.dsConfig == 4:
-            self.X, self.y = loadKUHAR()
+            self.X, self.y = loadISLAB()
 
     def dataProcessing(self):
         """
-        funzione in cui si effettuano tutte le elaborazinoi sui dati
+        viene effettuato lo splitting dei dati
         """
+        print('elaborazione dei dati...')
 
         self.X = np.array(self.X)
 
@@ -128,11 +138,7 @@ class BaseModel(metaclass=ABCMeta):
         self.y_train = enc.transform(self.y_train)
         self.y_test = enc.transform(self.y_test)
         self.y_val = enc.transform(self.y_val)
-        """
-        self.y_train = np.array(self.y_train).reshape(-1, 1)
-        self.y_test = np.array(self.y_test).reshape(-1, 1)
-        self.y_val = np.array(self.y_val).reshape(-1, 1)
-        """
+
         print('dimensione reshape', self.X_train[..., np.newaxis].shape)
         print('dimensione reshape', self.X_test[..., np.newaxis].shape)
         print('dimensione reshape', self.X_val[..., np.newaxis].shape)
@@ -180,22 +186,28 @@ class BaseModel(metaclass=ABCMeta):
             self.X_val = self.X_val.reshape(579, 12, 1)
             """
 
+        print('Fine elaborazione dati.')
         self.y = np.array(self.y)
-        print(self.y)
 
     @abstractmethod
     def modelCreation(self):
-        """:cvar"""
+        """
+        in base al modello che si vuole utilizzare viene implementato diversamente
+        """
         pass
 
     @abstractmethod
     def fit(self):
         """
-        verrà implementato dai modelli
+        in base al modello che si vuole utilizzare viene implementato diversamente
         """
         pass
 
     def plot(self):
+
+        """
+        funzione in cui vengono creati i grafici che rappresentano le performance dei modelli
+        """
 
         rounded_labels = np.argmax(self.y_test, axis=1)
         y_pred = self.model.predict_classes(self.X_test)

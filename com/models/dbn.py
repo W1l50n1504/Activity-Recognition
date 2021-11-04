@@ -27,14 +27,23 @@ class DeepBeliefNetwork(BaseModel, ABC):
         #                                                                       random_state=42)
 
     def modelCreation(self):
-        self.model = SupervisedDBNClassification(hidden_layers_structure=[1024, 1024],
-                                                 learning_rate_rbm=0.05,
+        """self.model = SupervisedDBNClassification(hidden_layers_structure=[1024, 1024],
+                                                 learning_rate_rbm=0.1,
                                                  learning_rate=0.1,
                                                  n_epochs_rbm=10,
                                                  n_iter_backprop=self.epochs,
                                                  batch_size=32,
                                                  activation_function='relu',
                                                  dropout_p=0.02)
+        """
+        self.model = SupervisedDBNClassification(hidden_layers_structure=[256, 256],
+                                                 learning_rate_rbm=0.05,
+                                                 learning_rate=0.1,
+                                                 n_epochs_rbm=10,
+                                                 n_iter_backprop=100,
+                                                 batch_size=32,
+                                                 activation_function='relu',
+                                                 dropout_p=0.2)
 
     def fit(self):
         self.history = self.model.fit(self.X_train, self.y_train)
@@ -71,7 +80,7 @@ class DeepBeliefNetwork(BaseModel, ABC):
         self.modelCreation()
         self.fit()
         self.saveModel()
-        #self.loadModel()
+        # self.loadModel()
         self.plot()
 
 

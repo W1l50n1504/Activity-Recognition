@@ -370,20 +370,19 @@ def loadUCIHAR():
 
 def loadMotionSense():
     X_df = pd.DataFrame(columns=finalColumns, dtype='float64')
-    Y_df = pd.DataFrame(columns=activity, dtype='int64')
     Y_label = []
 
-    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[0], 'WALKING_DOWNSTAIRS')
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[0] + '/sub_1.csv', 'WALKING_DOWNSTAIRS')
 
     # X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[1], 'LAYING') #in realta' si tratta di jogging, controllare se esiste
 
-    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[2], 'SITTING')
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[1] + '/sub_1.csv', 'SITTING')
 
-    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[3], 'WALKING_UPSTAIRS')
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[2] + '/sub_1.csv', 'WALKING_UPSTAIRS')
 
-    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[4], 'WALKING')
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[3] + '/sub_1.csv', 'WALKING')
 
-    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[5], 'STANDING')
+    X_df, Y_label = loadNmergeMS(X_df, Y_label, motionPath + activityListMotionSense[4] + '/sub_1.csv', 'STANDING')
 
     yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
 
@@ -407,7 +406,6 @@ def loadMotionSense():
 def loadKUHAR():
     # dataset finali che conterranno i KUHARIntero per come ci servono
     X_df = pd.DataFrame(columns=finalColumns, dtype='float32')
-    Y_df = pd.DataFrame(columns=activity, dtype='int32')
 
     Y_label = []
 
@@ -424,6 +422,7 @@ def loadKUHAR():
     X_df, Y_label = loadNmergeKU(X_df, Y_label, kuharPath + activityListKUHAR[5] + '1002_T_1.csv', 'WALKING_DOWNSTAIRS')
 
     yTemp = pd.DataFrame(Y_label, columns=activity, dtype='int64')
+
     X_df['Activity'] = yTemp['Activity']
     X_df.dropna(subset=[xAngle, yAngle, zAngle], inplace=True)
 
