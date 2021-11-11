@@ -1,3 +1,6 @@
+"""
+Contiene l'implementazione del BLSTM
+"""
 from com.core import *
 from com.utility import *
 

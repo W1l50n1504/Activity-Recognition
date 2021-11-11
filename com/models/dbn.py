@@ -1,3 +1,8 @@
+"""
+Contiene l'implementazione del DBN
+"""
+
+
 from com.dbn_libraries import SupervisedDBNClassification
 from com.core import *
 from com.utility import *

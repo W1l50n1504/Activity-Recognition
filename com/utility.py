@@ -1,3 +1,11 @@
+"""
+Le funzioni contenute in questo file servono per caricare i dataset ed effettuare i calcoli delle feature in più
+necessarie per l'addestramento dei modelli.
+
+Viene utilizzato per la preparazione dei dati per la instance based split
+
+"""
+
 import math
 import matplotlib.pyplot as plt
 import numpy as np
@@ -92,7 +100,7 @@ sit = '1.Sit/1001_B_1.csv'
 lay = '5.Lay/1001_F_1.csv'
 walk = '11.Walk/1002_L_1.csv'
 ups = '15.Stair-up/1002_S_1.csv'
-#downs = '16.Stair-down/1002_T_1.csv'
+# downs = '16.Stair-down/1002_T_1.csv'
 downs = '16.Stair-down/1101_T_10.csv'
 
 activityListISLAB = ['downs/sub3.csv', 'laying/sub3.csv', 'sit/sub3.csv', 'stand/sub3.csv', 'ups/sub3.csv',

@@ -1,3 +1,9 @@
+"""
+Contiene le funzioni che vengono utilizzate per il caricamento e la pulizia dei file creati durante la raccolta
+dei dati utilizzando ShieldApp.
+"""
+
+
 import pandas as pd
 
 sensor1 = "C:/Users/david/PycharmProjects/Activity-Recognition/com/dataset/ISLAB/rawdata/sensor_fOQPV_RXTT2kPgMrV25K-j.txt"

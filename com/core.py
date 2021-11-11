@@ -1,3 +1,8 @@
+"""
+Contiene la classe astratta su cui si basano le implementazioni dei modelli, alcune funzioni verranno implementate
+o sovrascritte nei file contenenti le implementazioni dei due altri modelli
+"""
+
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
@@ -44,12 +49,19 @@ class BaseModel(metaclass=ABCMeta):
     def __init__(self):
         """
         X e y sono i dataframe che conterranno i dati e le label rispettivamente appartenenti ai dataset
+
         model rappresenta l'oggetto appartenente alla classe dei modelli, cambia per ogni implementazione di BaseModel
+
         checkpoint contiene una copia del modello creato e si occupa di salvare un'istantanea del modello
+
         X_train e y_train contengono i dati che verranno utilizzati per il traning del modello
+
         X_test e y_test contengono i dati che verranno utilizzati per il test del modello
+
         X_val e y_val contengono i dati che verranno utilizzati per la validation del training
+
         epochs rappresenta il numero di iterazioni da fare durante l'addestramento del modello
+
         dsConfig e' un valore che rappresenta in che maniera caricare i dati e che tipo di dataset caricare
         """
         self.X = None
@@ -75,7 +87,8 @@ class BaseModel(metaclass=ABCMeta):
         """
 
         x1, y1 = loadUCIHAR()
-        x2, y2 = loadISLAB()
+        x2, y2 = loadKUHAR()
+        #x2, y2 = loadISLAB()
         x3, y3 = loadMotionSense()
 
         if self.dsConfig == 0:

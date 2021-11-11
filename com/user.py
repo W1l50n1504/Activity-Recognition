@@ -1,3 +1,8 @@
+"""
+Questo file contiene le funzioni necessarie per il caricamento dei dati di più utenti, è anche possibile personalizzare
+il numero di utenti da caricare modificando il range presente nel for
+"""
+
 from com.utility import *
 
 standK = '0.Stand/'

@@ -1,3 +1,7 @@
+"""
+Contiene l'implementazione del CNN
+"""
+
 from com.core import *
 from com.utility import *
 
